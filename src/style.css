@@ -144,6 +144,19 @@ button,
   color: #087a4d;
   font-size: 1.15rem;
 }
+.event-title-row {
+  align-items: baseline;
+  display: flex;
+  gap: 0.5rem;
+  justify-content: space-between;
+}
+
+.event-title-row span {
+  color: #64726c;
+  font-size: 0.87rem;
+  white-space: nowrap;
+}
+
 
 .event-link {
   justify-content: space-between;
@@ -152,7 +165,73 @@ button,
 
 .event-link:hover {
   border-color: #087a4d;
+  transform: translateY(-0.1rem) scale(1.01);
+  box-shadow: 0 0.5rem 1rem rgb(21 34 29 / 10%);
+  transition: transform 0.3s ease-in-out box-shadow 0.3s ease-in-out;
+
+  
+ 
 }
+.event-link .card-main {
+  flex: 1;
+}
+
+.top-beys {
+  display: grid;
+  gap: 0.25rem;
+  list-style: none;
+  margin: 0.75rem 0 0;
+  padding: 0;
+}
+
+.top-beys li {
+  display: flex;
+  font-size: 0.82rem;
+  gap: 1rem;
+  justify-content: space-between;
+}
+
+.top-beys strong {
+  color: #087a4d;
+}
+.top-beys li:first-child {
+  color: #30463d;
+  font-size: 0.8rem;
+  font-weight: 700;
+  margin-top: 0%;
+}
+.top-beys li:first-child span {
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.top-beys li:first-child strong {
+  font-size: .8rem;
+}
+.top-beys li:nth-child(2) span{
+  font-size: 0.8rem;
+    font-weight: 600;
+
+}
+.top-beys li:nth-child(2) strong{
+  color: #7a9688;
+}
+
+
+
+.top-beys li:not(:first-child) {
+  color: #8a9690;
+  margin-top: 0%;
+  font-size: 0.7rem;
+  font-weight: 500;
+}
+
+.top-beys li:not(:first-child) strong {
+  color: #7a9688;
+  font-weight: 700;
+}
+
+
 
 .bey-image-placeholder {
   background: #d9e1dc;
@@ -237,4 +316,143 @@ code {
     text-align: left;
     width: 100%;
   }
+}
+
+/* MX-inspired dark theme */
+:root {
+  color: #f7f3eb;
+  background: #0e0b12;
+}
+
+body {
+  background:
+    radial-gradient(ellipse at 20% -10%, rgb(125 53 154 / 35%), transparent 35rem),
+    radial-gradient(ellipse at 100% 20%, rgb(244 190 57 / 12%), transparent 25rem),
+    #0e0b12;
+}
+
+body::before {
+  background-image: repeating-radial-gradient(ellipse at 10% 0%, transparent 0 1.1rem, rgb(159 75 189 / 9%) 1.18rem 1.32rem, transparent 1.4rem 2.1rem);
+  content: '';
+  inset: 0;
+  opacity: 0.55;
+  pointer-events: none;
+  position: fixed;
+  z-index: -1;
+}
+
+.app-layout {
+  background: rgb(14 11 18 / 82%);
+  border-inline: 1px solid rgb(155 82 181 / 20%);
+}
+
+button,
+.button-link {
+  background: #e7ad2f;
+  box-shadow: 0 0.25rem 0.8rem rgb(231 173 47 / 23%);
+  color: #17111e;
+  transition: background 160ms ease, transform 160ms ease;
+}
+
+button:hover,
+.button-link:hover {
+  background: #ffd767;
+  transform: translateY(-1px);
+}
+
+.page-header h1 {
+  color: #f7f3eb;
+  letter-spacing: -0.045em;
+}
+
+.eyebrow,
+.rank-number,
+.stat-summary strong,
+.top-beys strong,
+.text-link {
+  color: #f3c449;
+}
+
+.page-intro,
+.list-card p,
+.empty-state p,
+.event-title-row span {
+  color: #b9afbf;
+}
+
+.list-card,
+.empty-state {
+  background: linear-gradient(135deg, rgb(39 27 48 / 96%), rgb(23 18 29 / 96%));
+  border: 1px solid rgb(164 87 190 / 45%);
+  box-shadow: 0 0.5rem 1.4rem rgb(0 0 0 / 27%), inset 0 1px rgb(255 255 255 / 4%);
+}
+
+.list-card h2,
+.empty-state h2 {
+  color: #f7f3eb;
+}
+
+.event-link:hover {
+  border-color: #f3c449;
+  box-shadow: 0 0.7rem 1.8rem rgb(0 0 0 / 42%), 0 0 1.3rem rgb(171 81 199 / 24%);
+  transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+
+.event-link > span {
+  color: #f3c449 !important;
+  text-shadow: 0 0 0.7rem rgb(243 196 73 / 48%);
+}
+
+.top-beys {
+  border-top: 1px solid rgb(219 153 234 / 18%);
+  margin: 0.2rem 0 0;
+  padding-top: 0.45rem;
+}
+
+.top-beys li:first-child {
+  color: #fffaf0;
+}
+
+.top-beys li:first-child strong {
+  color: #f3c449;
+}
+
+.top-beys li:not(:first-child),
+.top-beys li:not(:first-child) strong,
+.top-beys li:nth-child(2) strong {
+  color: #9c91a2;
+}
+
+.bey-image-placeholder {
+  background: linear-gradient(135deg, #d692e7, #63377c 55%, #e9b533);
+  box-shadow: inset 0 0 0 2px rgb(247 243 235 / 45%);
+}
+
+.placeholder-form input {
+  background: #1b1422;
+  border-color: #70407e;
+  color: #f7f3eb;
+}
+
+code {
+  background: #21172a;
+  color: #e3b1eb;
+}
+
+.bottom-navigation.MuiBottomNavigation-root {
+  background: rgb(18 13 23 / 96%);
+  border-top: 1px solid rgb(157 75 184 / 52%);
+  box-shadow: 0 -0.5rem 1.4rem rgb(0 0 0 / 27%);
+}
+
+.bottom-navigation .MuiBottomNavigationAction-root {
+  color: #a9a0ad;
+}
+
+.bottom-navigation .MuiBottomNavigationAction-root.Mui-selected {
+  color: #f3c449;
+}
+
+.bottom-navigation .MuiSvgIcon-root {
+  filter: drop-shadow(0 0 0.35rem rgb(174 91 203 / 25%));
 }

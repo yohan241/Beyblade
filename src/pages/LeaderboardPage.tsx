@@ -17,7 +17,7 @@ export function LeaderboardPage() {
 
   return (
     <section>
-      <PageHeader eyebrow="Overall tracker" title="Leaderboard" />
+      <PageHeader title="Leaderboard" />
       <p className="page-intro">Builds with at least 20 rounds are ranked by stat points.</p>
 
       <div className="stack-list">

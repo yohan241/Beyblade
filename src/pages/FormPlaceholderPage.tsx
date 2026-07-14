@@ -8,10 +8,15 @@ export function FormPlaceholderPage() {
 
   return (
     <section>
-      <PageHeader action={<Link className="text-link" to={isEventForm ? '/events' : '/beys'}>Cancel</Link>} title={title} />
+      <PageHeader title={title} />
       <form className="placeholder-form" onSubmit={(event) => event.preventDefault()}>
+        <div className="form-intro" style={{marginBottom: '15rem'}}>
+         <label>
+          {isEventForm ? 'Event name' : 'Bey Name'}
+          <input placeholder={isEventForm ? 'e.g. Melbourne Tournament' : 'e.g. Lancelot'} />
+        </label>
         <label>
-          {isEventForm ? 'Event name' : 'Bey name'}
+          {isEventForm ? 'Event name' : 'Bey Build'}
           <input placeholder={isEventForm ? 'e.g. Melbourne Tournament' : 'e.g. PW 1-70LR'} />
         </label>
         {isEventForm ? (
@@ -25,7 +30,11 @@ export function FormPlaceholderPage() {
             <input accept="image/*" type="file" />
           </label>
         )}
-        <button type="submit">Save placeholder</button>
+      </div>
+      <div className="form-actions" style={{ gap: '1rem', marginTop: '1rem', display: 'flex' }}>
+        <button type="submit" style={{ flex: 1 }}>Save</button>
+        <button type="reset" style={{ flex: 1 }}>Cancel</button>
+      </div>
       </form>
     </section>
   )
