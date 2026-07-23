@@ -32,26 +32,25 @@ export function AppLayout() {
         >
           <Toolbar disableGutters>
             <Typography
+              className="app-title"
               variant="h6"
               noWrap
               sx={{
                 mr: 2,
-                fontFamily: "system-ui, sans-serif",
-                fontWeight: 700,
-                letterSpacing: ".3rem",
-                color: "#f7f3eb",
-                textDecoration: "none",
+                fontFamily: '"Permanent Marker", cursive',
+                fontWeight: 400,
+                letterSpacing: ".08rem",
+                color: "#f7c94c",
                 paddingLeft: "16px",
-                textShadow: '0 0 1rem rgb(183 101 214 / 65%)',
               }}
             >
-              BEYBLADE BASTA
+              BEYTRACK
             </Typography>
 
             <Box sx={{ flexGrow: 1, display: { xs: "flex", md: "none" } }}>
-              
+
             </Box>
-            
+
           </Toolbar>
         </AppBar>
       </Box>

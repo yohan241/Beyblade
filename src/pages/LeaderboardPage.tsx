@@ -1,8 +1,15 @@
-import { calculateStatsFromRoundCodes } from '../lib/stats'
-import { beys, eventBeyEntries } from '../data/mockData'
+import { useState } from 'react'
+import { BeyName, getBeyDisplayName } from '../components/BeyName'
 import { PageHeader } from '../components/PageHeader'
+import { beys, eventBeyEntries } from '../data/mockData'
+import { calculateStatsFromRoundCodes } from '../lib/stats'
+
+type SortOption = 'statPoints' | 'winRate' | 'scoreOverOpponentRate'
 
 export function LeaderboardPage() {
+  const [minimumWins, setMinimumWins] = useState(0)
+  const [sortBy, setSortBy] = useState<SortOption>('statPoints')
+
   const overallStats = beys
     .map((bey) => {
       const allRoundCodes = eventBeyEntries
@@ -10,35 +17,64 @@ export function LeaderboardPage() {
         .map((entry) => entry.roundCodes)
         .join('')
 
-      return calculateStatsFromRoundCodes(bey.id, bey.name, allRoundCodes)
+      return calculateStatsFromRoundCodes(bey.id, getBeyDisplayName(bey), allRoundCodes)
     })
-    .filter((stats) => stats.matches >= 20)
-    .sort((first, second) => (second.statPoints ?? 0) - (first.statPoints ?? 0))
+    .filter((stats) => stats.wins >= minimumWins)
+    .sort((first, second) => {
+      const firstValue = first[sortBy] ?? -Infinity
+      const secondValue = second[sortBy] ?? -Infinity
+
+      return secondValue - firstValue || first.name.localeCompare(second.name)
+    })
 
   return (
     <section>
       <PageHeader title="Leaderboard" />
-      <p className="page-intro">Builds with at least 20 rounds are ranked by stat points.</p>
+      {/* <p className="page-intro">Rank Beys by the stats that matter to you.</p> */}
+
+      <form className="leaderboard-controls" onSubmit={(event) => event.preventDefault()}>
+        <label>
+          Minimum wins
+          <input
+            min="0"
+            onChange={(event) => setMinimumWins(Math.max(0, Number(event.target.value) || 0))}
+            type="number"
+            value={minimumWins}
+          />
+        </label>
+        <label>
+          Sort by
+          <select onChange={(event) => setSortBy(event.target.value as SortOption)} value={sortBy}>
+            <option value="statPoints">Stat points</option>
+            <option value="winRate">Win rate</option>
+            <option value="scoreOverOpponentRate">SOOR</option>
+          </select>
+        </label>
+      </form>
 
       <div className="stack-list">
         {overallStats.length === 0 ? (
           <article className="empty-state">
-            <h2>No ranked Beys yet</h2>
-            <p>Add event results until a Bey reaches 20 rounds.</p>
+            <h2>No Beys match these filters</h2>
+            <p>Try lowering the minimum wins requirement.</p>
           </article>
         ) : (
           overallStats.map((stats, index) => (
             <article className="list-card" key={stats.id}>
               <p className="rank-number">#{index + 1}</p>
               <div className="card-main">
-                <h2>{stats.name}</h2>
+                <h2><BeyName bey={beys.find((bey) => bey.id === stats.id)} /></h2>
                 <p>
-                  {stats.wins}–{stats.losses} ({stats.matches}) · {stats.pointsFor}–
-                  {stats.pointsAgainst} points
+                  <span className="stat-positive">{stats.wins}</span>–
+                  <span className="stat-negative">{stats.losses}</span> ({stats.matches}) ·{' '}
+                  <span className="stat-positive">{stats.pointsFor}</span>–
+                  <span className="stat-negative">{stats.pointsAgainst}</span> points
                 </p>
               </div>
               <div className="stat-summary">
-                <span>{Math.round(stats.winRate)}% WR</span>
+                <span className={stats.winRate >= 50 ? 'stat-positive' : 'stat-negative'}>
+                  {Math.round(stats.winRate)}% WR
+                </span>
                 <span>{Math.round(stats.scoreOverOpponentRate ?? 0)}% SOOR</span>
                 <strong>{stats.statPoints ?? '—'}</strong>
               </div>

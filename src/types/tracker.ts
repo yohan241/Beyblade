@@ -16,7 +16,9 @@ export type BuildStats = BuildSummary & {
 
 export type Bey = {
   id: string
-  name: string
+  name?: string
+  build: string
+  createdAt: string
   imageUrl?: string
 }
 

@@ -1,4 +1,4 @@
-import { Link, useLocation } from 'react-router-dom'
+import { useLocation } from 'react-router-dom'
 import { PageHeader } from '../components/PageHeader'
 
 export function FormPlaceholderPage() {
@@ -12,7 +12,7 @@ export function FormPlaceholderPage() {
       <form className="placeholder-form" onSubmit={(event) => event.preventDefault()}>
         <div className="form-intro" style={{marginBottom: '15rem'}}>
          <label>
-          {isEventForm ? 'Event name' : 'Bey Name'}
+          {isEventForm ? 'Event name' : 'Bey nickname (optional)'}
           <input placeholder={isEventForm ? 'e.g. Melbourne Tournament' : 'e.g. Lancelot'} />
         </label>
         <label>
@@ -31,7 +31,7 @@ export function FormPlaceholderPage() {
           </label>
         )}
       </div>
-      <div className="form-actions" style={{ gap: '1rem', marginTop: '1rem', display: 'flex' }}>
+      <div className="form-actions" style={{ gap: '1rem', marginTop: '1rem', display: 'flex' , flexDirection: 'column'}}>
         <button type="submit" style={{ flex: 1 }}>Save</button>
         <button type="reset" style={{ flex: 1 }}>Cancel</button>
       </div>

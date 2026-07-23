@@ -1,15 +1,15 @@
 import type { Bey, EventBeyEntry, TrackerEvent } from '../types/tracker'
 
 export const beys: Bey[] = [
-  { id: 'wr-1-60h', name: 'WR 1-60H' },
-  { id: 'hw-9-60fb', name: 'HW 9-60FB' },
-  { id: 'pw-1-70lr', name: 'PW 1-70LR' },
-  { id: 'dr-3-60t', name: 'DR 3-60T' },
-  { id: 'cr-5-70p', name: 'CR 5-70P' },
-  { id: 'bs-7-60u', name: 'BS 7-60U' },
-  { id: 'sl-2-80gp', name: 'SL 2-80GP' },
-  { id: 'kn-4-60lf', name: 'KN 4-60LF' },
-  { id: 'rh-1-80b', name: 'RH 1-80B' },
+  { id: 'wr-1-60h', name: 'Purple Reign TITEEEE', build: 'WR 1-60H', createdAt: '2026-07-20T10:00:00Z' },
+  { id: 'hw-9-60fb', build: 'HW 9-60FB', createdAt: '2026-07-18T10:00:00Z' },
+  { id: 'pw-1-70lr', name: 'Pegasus', build: 'PW 1-70LR', createdAt: '2026-07-14T10:00:00Z' },
+  { id: 'dr-3-60t', build: 'DR 3-60T', createdAt: '2026-07-10T10:00:00Z' },
+  { id: 'cr-5-70p', name: 'Crimson Tide', build: 'CR 5-70P', createdAt: '2026-07-05T10:00:00Z' },
+  { id: 'bs-7-60u', build: 'BS 7-60U', createdAt: '2026-06-29T10:00:00Z' },
+  { id: 'sl-2-80gp', name: 'Solar Flare', build: 'SL 2-80GP', createdAt: '2026-06-24T10:00:00Z' },
+  { id: 'kn-4-60lf', build: 'KN 4-60LF', createdAt: '2026-06-18T10:00:00Z' },
+  { id: 'rh-1-80b', name: 'Black Rose', build: 'RH 1-80B', createdAt: '2026-06-12T10:00:00Z' },
 ]
 
 export const events: TrackerEvent[] = [
