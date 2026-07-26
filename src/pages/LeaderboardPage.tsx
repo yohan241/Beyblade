@@ -7,8 +7,11 @@ import { calculateStatsFromRoundCodes } from '../lib/stats'
 type SortOption = 'statPoints' | 'winRate' | 'scoreOverOpponentRate'
 
 export function LeaderboardPage() {
-  const [minimumWins, setMinimumWins] = useState(0)
+  // Keep as a string so the field can be empty without snapping back to 0
+  const [minimumMatchesInput, setMinimumMatchesInput] = useState('')
   const [sortBy, setSortBy] = useState<SortOption>('statPoints')
+
+  const minimumMatches = minimumMatchesInput === '' ? 0 : Math.max(0, Number(minimumMatchesInput))
 
   const overallStats = beys
     .map((bey) => {
@@ -19,7 +22,7 @@ export function LeaderboardPage() {
 
       return calculateStatsFromRoundCodes(bey.id, getBeyDisplayName(bey), allRoundCodes)
     })
-    .filter((stats) => stats.wins >= minimumWins)
+    .filter((stats) => stats.matches >= minimumMatches)
     .sort((first, second) => {
       const firstValue = first[sortBy] ?? -Infinity
       const secondValue = second[sortBy] ?? -Infinity
@@ -30,16 +33,20 @@ export function LeaderboardPage() {
   return (
     <section>
       <PageHeader title="Leaderboard" />
-      {/* <p className="page-intro">Rank Beys by the stats that matter to you.</p> */}
 
       <form className="leaderboard-controls" onSubmit={(event) => event.preventDefault()}>
         <label>
-          Minimum wins
+          Minimum matches
           <input
             min="0"
-            onChange={(event) => setMinimumWins(Math.max(0, Number(event.target.value) || 0))}
+            onChange={(e) => {
+              const raw = e.target.value
+              // Allow empty, or any non-negative integer
+              if (raw === '' || /^\d+$/.test(raw)) setMinimumMatchesInput(raw)
+            }}
+            placeholder="0"
             type="number"
-            value={minimumWins}
+            value={minimumMatchesInput}
           />
         </label>
         <label>
@@ -56,7 +63,7 @@ export function LeaderboardPage() {
         {overallStats.length === 0 ? (
           <article className="empty-state">
             <h2>No Beys match these filters</h2>
-            <p>Try lowering the minimum wins requirement.</p>
+            <p>Try lowering the minimum matches requirement.</p>
           </article>
         ) : (
           overallStats.map((stats, index) => (
