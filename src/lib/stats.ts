@@ -35,11 +35,11 @@ export function parseRoundCodes(roundCodes: string): ParsedRound[] {
   }))
 
   const invalidSelfFinish = parsedRounds.some(
-    (round) => round.isSelfFinish && !['2', '3', '4'].includes(round.code),
+    (round) => round.isSelfFinish && !['2', '3', '4', '6', '7', '8'].includes(round.code),
   )
 
   if (invalidSelfFinish) {
-    throw new Error('A self-finish indicator can only follow a Pocket, Xtreme, or Burst finish.')
+    throw new Error('A self-finish indicator can only follow a Pocket, Xtreme, or Burst finish (codes 2–4 or 6–8).')
   }
 
   return parsedRounds

@@ -20,27 +20,31 @@ export const events: TrackerEvent[] = [
 ]
 
 export const eventBeyEntries: EventBeyEntry[] = [
-  { id: 'metro-wr', eventId: 'metro-jul-12', beyId: 'wr-1-60h', roundCodes: '2431505' },
-  { id: 'metro-hw', eventId: 'metro-jul-12', beyId: 'hw-9-60fb', roundCodes: '4355552' },
-  { id: 'metro-pw', eventId: 'metro-jul-12', beyId: 'pw-1-70lr', roundCodes: '2425527' },
-  { id: 'metro-dr', eventId: 'metro-jul-12', beyId: 'dr-3-60t', roundCodes: '3145650' },
-  { id: 'metro-cr', eventId: 'metro-jul-12', beyId: 'cr-5-70p', roundCodes: '4257165' },
+  // Metro Summer Open — Jul 12
+  { id: 'metro-wr', eventId: 'metro-jul-12', beyId: 'wr-1-60h',   roundCodes: '2.431505'      }, // 1 win SF (Pocket)
+  { id: 'metro-hw', eventId: 'metro-jul-12', beyId: 'hw-9-60fb',  roundCodes: '43.55552'      }, // 1 win SF (Burst)
+  { id: 'metro-pw', eventId: 'metro-jul-12', beyId: 'pw-1-70lr',  roundCodes: '2425527'       },
+  { id: 'metro-dr', eventId: 'metro-jul-12', beyId: 'dr-3-60t',   roundCodes: '3.145650'      }, // 1 win SF (Xtreme)
+  { id: 'metro-cr', eventId: 'metro-jul-12', beyId: 'cr-5-70p',   roundCodes: '4257165'       },
 
-  { id: 'harbor-hw', eventId: 'harbor-jun-28', beyId: 'hw-9-60fb', roundCodes: '2345502' },
-  { id: 'harbor-bs', eventId: 'harbor-jun-28', beyId: 'bs-7-60u', roundCodes: '3524651' },
-  { id: 'harbor-sl', eventId: 'harbor-jun-28', beyId: 'sl-2-80gp', roundCodes: '2165742' },
-  { id: 'harbor-kn', eventId: 'harbor-jun-28', beyId: 'kn-4-60lf', roundCodes: '4425560' },
-  { id: 'harbor-rh', eventId: 'harbor-jun-28', beyId: 'rh-1-80b', roundCodes: '1256753' },
+  // Harbour Clash — Jun 28
+  { id: 'harbor-hw', eventId: 'harbor-jun-28', beyId: 'hw-9-60fb',  roundCodes: '2.3455 02'   }, // 1 win SF (Pocket)
+  { id: 'harbor-bs', eventId: 'harbor-jun-28', beyId: 'bs-7-60u',   roundCodes: '3.524651'    }, // 1 win SF (Xtreme)
+  { id: 'harbor-sl', eventId: 'harbor-jun-28', beyId: 'sl-2-80gp',  roundCodes: '2.16.5742'   }, // 1 win SF (Pocket), 1 loss SF (Opp Pocket)
+  { id: 'harbor-kn', eventId: 'harbor-jun-28', beyId: 'kn-4-60lf',  roundCodes: '4.4255 60'   }, // 2 win SF (Burst)
+  { id: 'harbor-rh', eventId: 'harbor-jun-28', beyId: 'rh-1-80b',   roundCodes: '12567.53'    }, // 1 loss SF (Opp Xtreme)
 
-  { id: 'local-wr', eventId: 'local-jun-03', beyId: 'wr-1-60h', roundCodes: '1761243' },
-  { id: 'local-pw', eventId: 'local-jun-03', beyId: 'pw-1-70lr', roundCodes: '2257415' },
-  { id: 'local-dr', eventId: 'local-jun-03', beyId: 'dr-3-60t', roundCodes: '4352165' },
-  { id: 'local-bs', eventId: 'local-jun-03', beyId: 'bs-7-60u', roundCodes: '3125564' },
-  { id: 'local-kn', eventId: 'local-jun-03', beyId: 'kn-4-60lf', roundCodes: '2451672' },
+  // Local Battles — Jun 03
+  { id: 'local-wr', eventId: 'local-jun-03', beyId: 'wr-1-60h',   roundCodes: '17612.43'      }, // 1 loss SF (Opp Pocket)
+  { id: 'local-pw', eventId: 'local-jun-03', beyId: 'pw-1-70lr',  roundCodes: '2.257415'      }, // 1 win SF (Pocket)
+  { id: 'local-dr', eventId: 'local-jun-03', beyId: 'dr-3-60t',   roundCodes: '4.3521 65'     }, // 1 win SF (Burst)
+  { id: 'local-bs', eventId: 'local-jun-03', beyId: 'bs-7-60u',   roundCodes: '3.12 55 64'    }, // 1 win SF (Xtreme)
+  { id: 'local-kn', eventId: 'local-jun-03', beyId: 'kn-4-60lf',  roundCodes: '245167.2'      }, // 1 loss SF (Opp Xtreme)
 
-  { id: 'night-cr', eventId: 'night-may-17', beyId: 'cr-5-70p', roundCodes: '2345551' },
-  { id: 'night-sl', eventId: 'night-may-17', beyId: 'sl-2-80gp', roundCodes: '4236175' },
-  { id: 'night-kn', eventId: 'night-may-17', beyId: 'kn-4-60lf', roundCodes: '3552146' },
-  { id: 'night-rh', eventId: 'night-may-17', beyId: 'rh-1-80b', roundCodes: '2147562' },
-  { id: 'night-hw', eventId: 'night-may-17', beyId: 'hw-9-60fb', roundCodes: '4523517' },
+  // Friday Night X — May 17
+  { id: 'night-cr', eventId: 'night-may-17', beyId: 'cr-5-70p',   roundCodes: '2.34555 1'     }, // 1 win SF (Pocket)
+  { id: 'night-sl', eventId: 'night-may-17', beyId: 'sl-2-80gp',  roundCodes: '4.23617.5'     }, // 1 win SF (Burst), 1 loss SF (Opp Xtreme)
+  { id: 'night-kn', eventId: 'night-may-17', beyId: 'kn-4-60lf',  roundCodes: '3.552146'      }, // 1 win SF (Xtreme)
+  { id: 'night-rh', eventId: 'night-may-17', beyId: 'rh-1-80b',   roundCodes: '2.1478.562'    }, // 1 win SF (Pocket), 1 loss SF (Opp Burst)
+  { id: 'night-hw', eventId: 'night-may-17', beyId: 'hw-9-60fb',  roundCodes: '4.5235 17'     }, // 1 win SF (Burst)
 ]

@@ -9,10 +9,16 @@ import Box from "@mui/material/Box";
 import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
 
+const NAV_ITEMS = [
+  { label: "Leaderboard", value: "/leaderboard", Icon: LeaderboardIcon },
+  { label: "Events",      value: "/events",      Icon: EventIcon },
+  { label: "Beys",        value: "/beys",        Icon: AllOutIcon },
+];
 
 export function AppLayout() {
   const location = useLocation();
   const navigate = useNavigate();
+
   const navigationValue = location.pathname.startsWith("/events")
     ? "/events"
     : location.pathname.startsWith("/beys")
@@ -21,7 +27,8 @@ export function AppLayout() {
 
   return (
     <div className="app-layout">
-      <Box sx={{ flexGrow: 1 }}>
+      {/* ── Top bar ── */}
+      <Box sx={{ flexGrow: 1 }} className="app-topbar">
         <AppBar
           position="static"
           sx={{
@@ -46,19 +53,32 @@ export function AppLayout() {
             >
               BEYTRACK
             </Typography>
-
-            <Box sx={{ flexGrow: 1, display: { xs: "flex", md: "none" } }}>
-
-            </Box>
-
           </Toolbar>
         </AppBar>
       </Box>
 
+      {/* ── Desktop sidebar (hidden on mobile via CSS) ── */}
+      <nav className="desktop-sidenav" aria-label="Main navigation">
+        <div className="sidenav-logo" aria-hidden="true">⬡</div>
+        {NAV_ITEMS.map(({ label, value, Icon }) => (
+          <button
+            key={value}
+            className={`sidenav-link${navigationValue === value ? ' sidenav-link-active' : ''}`}
+            onClick={() => navigate(value)}
+            type="button"
+          >
+            <Icon className="sidenav-icon" fontSize="small" />
+            <span>{label}</span>
+          </button>
+        ))}
+      </nav>
+
+      {/* ── Page content ── */}
       <main className="page-content">
         <Outlet />
       </main>
 
+      {/* ── Mobile bottom nav ── */}
       <BottomNavigation
         className="bottom-navigation"
         showLabels

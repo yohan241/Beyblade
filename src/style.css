@@ -67,7 +67,40 @@ button,
   margin: 0 auto;
   max-width: 46rem;
   min-height: 100svh;
-  
+}
+
+/* ── Desktop layout: sidebar nav + wider content ── */
+@media (min-width: 860px) {
+  .app-layout {
+    display: grid;
+    grid-template-columns: 14rem 1fr;
+    grid-template-rows: auto 1fr;
+    grid-template-areas:
+      "topbar topbar"
+      "sidenav content";
+    max-width: 72rem;
+    min-height: 100svh;
+  }
+
+  /* AppBar spans full width */
+  .app-layout > .MuiBox-root:first-child {
+    grid-area: topbar;
+  }
+
+  .page-content {
+    grid-area: content;
+    padding: 2rem 2.5rem 3rem;
+    min-height: calc(100svh - 4rem);
+  }
+
+  /* Hide mobile bottom nav, show desktop sidebar */
+  .bottom-navigation {
+    display: none !important;
+  }
+
+  .desktop-sidenav {
+    display: flex !important;
+  }
 }
 .app-title {
   font-family: 'Nabla', system-ui;
@@ -141,14 +174,23 @@ button,
   gap: 0.75rem;
 }
 
-.list-card,
-.empty-state {
+.list-card {
   align-items: center;
   background: #fff;
   border: 1px solid #d9e1dc;
   border-radius: 1rem;
   box-shadow: 0 0.25rem 0.75rem rgb(21 34 29 / 5%);
   display: flex;
+  gap: 0.9rem;
+  padding: 1rem;
+}
+
+.empty-state {
+  align-items: center;
+  background: #fff;
+  border: 1px solid #d9e1dc;
+  border-radius: 1rem;
+  box-shadow: 0 0.25rem 0.75rem rgb(21 34 29 / 5%);
   gap: 0.9rem;
   padding: 1rem;
 }
@@ -609,4 +651,982 @@ code {
 
 .MuiFab-root:hover {
   background: #ffd767 !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SHARED FORM STYLES (AddBeyPage + AddEventPage step 1)
+═══════════════════════════════════════════════════════════════ */
+
+.header-back-btn {
+  background: transparent;
+  border: 1px solid #70407e;
+  border-radius: 999px;
+  color: #d7a0e8;
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 0.4rem 0.9rem;
+  white-space: nowrap;
+}
+.header-back-btn:hover {
+  background: #2a1535;
+  border-color: #f3c449;
+  color: #f3c449;
+}
+
+.form-label {
+  color: #d7a0e8;
+  display: grid;
+  font-size: 0.75rem;
+  font-weight: 800;
+  gap: 0.4rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.form-optional {
+  color: #8a7a96;
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.form-required {
+  color: #ff7184;
+}
+
+.form-input {
+  background: #1b1422;
+  border: 1px solid #70407e;
+  border-radius: 0.65rem;
+  color: #f7f3eb;
+  font: inherit;
+  min-height: 2.7rem;
+  padding: 0.5rem 0.75rem;
+  transition: border-color 0.15s;
+}
+.form-input:focus {
+  border-color: #f3c449;
+  outline: 2px solid rgb(243 196 73 / 28%);
+  outline-offset: 1px;
+}
+.form-input-error {
+  border-color: #ff7184 !important;
+}
+
+.form-error-msg {
+  color: #ff7184;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.form-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-top: 0.5rem;
+}
+
+.btn-primary {
+  background: #087a4d;
+  border: 0;
+  border-radius: 999px;
+  color: #fff;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 700;
+  padding: 0.75rem 1.25rem;
+  text-align: center;
+}
+.btn-primary:hover { background: #05613d; }
+.btn-primary:disabled {
+  background: #2a3d35;
+  color: #5a7a6a;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  background: transparent;
+  border: 1px solid #70407e;
+  border-radius: 999px;
+  color: #d7a0e8;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 700;
+  padding: 0.75rem 1.25rem;
+  text-align: center;
+}
+.btn-secondary:hover { background: #2a1535; }
+
+.visually-hidden {
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  height: 1px;
+  overflow: hidden;
+  position: absolute;
+  white-space: nowrap;
+  width: 1px;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   ADD BEY PAGE
+═══════════════════════════════════════════════════════════════ */
+
+.add-bey-form {
+  display: grid;
+  gap: 1.5rem;
+  max-width: 34rem;
+}
+
+.bey-image-picker {
+  cursor: pointer;
+  display: block;
+}
+
+.bey-image-preview {
+  border-radius: 1rem;
+  display: block;
+  height: 10rem;
+  object-fit: cover;
+  width: 100%;
+}
+
+.bey-image-placeholder-lg {
+  align-items: center;
+  background: #1b1422;
+  border: 2px dashed #70407e;
+  border-radius: 1rem;
+  color: #8a7a96;
+  display: flex;
+  flex-direction: column;
+  font-size: 0.85rem;
+  font-weight: 700;
+  gap: 0.4rem;
+  height: 8rem;
+  justify-content: center;
+  transition: border-color 0.15s;
+}
+.bey-image-picker:hover .bey-image-placeholder-lg {
+  border-color: #f3c449;
+  color: #f3c449;
+}
+.bey-image-placeholder-lg span:first-child { font-size: 1.75rem; }
+
+.form-fields {
+  display: grid;
+  gap: 1rem;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   ADD EVENT PAGE — step 1 (details form)
+═══════════════════════════════════════════════════════════════ */
+
+.add-event-details-form {
+  display: grid;
+  gap: 1.25rem;
+  max-width: 34rem;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   ADD EVENT PAGE — step 2 (matches)
+═══════════════════════════════════════════════════════════════ */
+
+/* ── Carousel ── */
+.bey-carousel {
+  display: flex;
+  gap: 0.6rem;
+  margin-bottom: 1rem;
+  overflow-x: auto;
+  padding-bottom: 0.4rem;
+  scrollbar-width: none;
+}
+.bey-carousel::-webkit-scrollbar { display: none; }
+
+.carousel-chip {
+  align-items: center;
+  background: #1b1422;
+  border: 2px solid #70407e;
+  border-radius: 0.85rem;
+  color: #f7f3eb;
+  cursor: pointer;
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  font: inherit;
+  gap: 0.3rem;
+  padding: 0.55rem 0.7rem;
+  transition: border-color 0.15s, background 0.15s;
+  width: 5.5rem;
+}
+.carousel-chip:hover { border-color: #d7a0e8; }
+.carousel-chip-active {
+  background: #2a1535;
+  border-color: #f3c449;
+}
+
+.carousel-chip-image {
+  background: #3a2545;
+  border-radius: 0.5rem;
+  height: 2.8rem;
+  width: 2.8rem;
+}
+
+.carousel-chip-name {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  overflow: hidden;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 100%;
+}
+
+.carousel-chip-stat {
+  color: #8a9690;
+  font-size: 0.6rem;
+  font-weight: 700;
+}
+.carousel-chip-active .carousel-chip-stat { color: #f3c449; }
+
+/* Add Bey chip — dashed border, distinct from bey chips */
+.carousel-chip-add {
+  border-style: dashed;
+  border-color: #70407e;
+  color: #d7a0e8;
+}
+.carousel-chip-add:hover {
+  border-color: #f3c449;
+  color: #f3c449;
+  background: #1e1428;
+}
+
+.carousel-chip-add-icon {
+  align-items: center;
+  background: #2a1a35;
+  border-radius: 0.5rem;
+  display: flex;
+  font-size: 1.4rem;
+  font-weight: 300;
+  height: 2.8rem;
+  justify-content: center;
+  line-height: 1;
+  width: 2.8rem;
+}
+.carousel-chip-add:hover .carousel-chip-add-icon {
+  background: #3a2040;
+}
+
+/* ── Add Bey row — kept for fallback but hidden since it's in carousel now ── */
+.add-bey-row { display: none; }
+
+/* ── Event bey entry list ── */
+.event-bey-list {
+  display: grid;
+  gap: 0.6rem;
+  margin-bottom: 1rem;
+}
+
+.event-bey-entry {
+  align-items: flex-start;
+  background: #1b1422;
+  border: 1px solid #3a2545;
+  border-radius: 0.85rem;
+  cursor: pointer;
+  display: flex;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  transition: border-color 0.15s;
+  user-select: none;
+}
+.event-bey-entry:hover { border-color: #70407e; }
+.event-bey-entry-active {
+  border-color: #f3c449;
+  background: #221530;
+}
+.event-bey-entry:focus { outline: 2px solid #f3c449; outline-offset: 2px; }
+
+.ebe-left { flex-shrink: 0; }
+
+.ebe-main {
+  display: grid;
+  flex: 1;
+  gap: 0.3rem;
+  min-width: 0;
+}
+
+.ebe-name {
+  color: #f7f3eb;
+  font-size: 0.9rem;
+}
+
+.ebe-codes {
+  font-size: 0.8rem;
+  letter-spacing: 0.06em;
+  word-break: break-all;
+}
+
+/* Self-finish dot — clearly visible in a muted accent colour */
+.ebe-dot {
+  color: #d7a0e8;
+  font-size: 0.85rem;
+  font-weight: 900;
+  letter-spacing: 0;
+}
+
+.ebe-empty {
+  color: #5a4a66;
+  font-size: 0.78rem;
+  font-style: italic;
+}
+
+.ebe-remove {
+  background: transparent;
+  border: 0;
+  border-radius: 999px;
+  color: #5a4a66;
+  cursor: pointer;
+  flex-shrink: 0;
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1;
+  padding: 0.3rem 0.4rem;
+  transition: color 0.15s;
+}
+.ebe-remove:hover { color: #ff7184; }
+
+/* ── Bey stat row ── */
+.bey-stat-row {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  font-size: 0.72rem;
+  gap: 0.5rem;
+  margin-top: 0.1rem;
+}
+
+.bsr-frac { display: flex; gap: 0.1rem; }
+.bsr-label { color: #5a4a66; }
+.bsr-stat { color: #f3c449; font-size: 0.8rem; }
+
+/* ── Score panel wrapper ── */
+.score-panel-wrapper {
+  margin-bottom: 1rem;
+  scroll-margin-top: 1rem;
+}
+
+/* ── Score panel ── */
+.score-panel {
+  background: #1b1422;
+  border: 2px solid #f3c449;
+  border-radius: 1rem;
+  display: grid;
+  gap: 0.75rem;
+  padding: 1rem;
+}
+
+.score-panel-header {
+  align-items: baseline;
+  display: flex;
+  gap: 0.5rem;
+  justify-content: space-between;
+}
+
+.score-panel-name {
+  color: #f7f3eb;
+  font-size: 0.95rem;
+  font-weight: 800;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.score-panel-match {
+  color: #f3c449;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/* ── Round tape ── */
+.round-tape {
+  background: #120d17;
+  border-radius: 0.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.15rem;
+  padding: 0.4rem 0.6rem;
+}
+
+.tape-code {
+  font-family: monospace;
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+/* ── Score button grid ── */
+.score-btn-grid {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.score-btn-row {
+  align-items: stretch;
+  display: grid;
+  gap: 0.4rem;
+  grid-template-columns: 4rem 1fr 4rem;
+}
+
+/* Win / loss arrow buttons */
+.score-btn {
+  border: 0;
+  border-radius: 0.55rem;
+  cursor: pointer;
+  font: inherit;
+  font-size: 1.1rem;
+  font-weight: 900;
+  line-height: 2;
+  padding: 0.55rem 0;
+  transition: opacity 0.1s, transform 0.1s;
+}
+.score-btn:active { transform: scale(0.93); }
+
+.score-btn-win {
+  background: #087a4d;
+  color: #fff;
+}
+.score-btn-win:hover { background: #05613d; }
+
+.score-btn-loss {
+  background: #7a1d2e;
+  color: #fff;
+}
+.score-btn-loss:hover { background: #a02540; }
+
+/* Centre label button */
+.score-btn-label {
+  align-items: center;
+  background: #2a1a35;
+  border: 1px solid #3a2545;
+  border-radius: 0.55rem;
+  color: #f7f3eb;
+  cursor: pointer;
+  display: flex;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 700;
+  gap: 0.5rem;
+  justify-content: space-between;
+  padding: 0.55rem 0.75rem;
+  text-align: left;
+  transition: background 0.1s, border-color 0.1s;
+}
+.score-btn-label:hover {
+  background: #3a2545;
+  border-color: #70407e;
+}
+.score-btn-label:active { transform: scale(0.97); }
+
+.score-btn-pts {
+  color: #64d69d;
+  font-size: 0.72rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+/* ── SF toggle + footer ── */
+.score-panel-footer {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 0.25rem;
+}
+
+.sf-toggle {
+  background: #2a1a35;
+  border: 2px solid #70407e;
+  border-radius: 999px;
+  color: #d7a0e8;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 800;
+  padding: 0.35rem 0.9rem;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.sf-toggle-on {
+  background: #3d0e1a;
+  border-color: #ff7184;
+  color: #ff7184;
+}
+.sf-toggle:hover { border-color: #f3c449; color: #f3c449; }
+
+.sf-hint {
+  color: #5a4a66;
+  font-size: 0.68rem;
+  flex: 1;
+}
+
+.score-btn-undo {
+  background: transparent;
+  border: 1px solid #5a4a66;
+  border-radius: 999px;
+  color: #8a7a96;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 700;
+  margin-left: auto;
+  padding: 0.3rem 0.8rem;
+  transition: border-color 0.15s, color 0.15s;
+}
+.score-btn-undo:hover { border-color: #ff7184; color: #ff7184; }
+
+.last-round-reminder {
+  color: #5a4a66;
+  font-size: 0.72rem;
+  margin: 0;
+}
+
+/* ── Done bar ── */
+.done-bar {
+  bottom: 4.5rem;
+  left: 0;
+  padding: 0.75rem 1rem;
+  position: sticky;
+  right: 0;
+  z-index: 10;
+}
+
+.btn-done {
+  background: #f3c449;
+  border: 0;
+  border-radius: 999px;
+  color: #120d17;
+  cursor: pointer;
+  display: block;
+  font: inherit;
+  font-size: 1.05rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  padding: 0.85rem;
+  text-align: center;
+  transition: background 0.15s, transform 0.1s;
+  width: 100%;
+}
+.btn-done:hover { background: #e8b93a; }
+.btn-done:active { transform: scale(0.98); }
+.btn-done:disabled {
+  background: #2a2030;
+  color: #4a3d55;
+  cursor: not-allowed;
+}
+
+/* ── Bey picker modal ── */
+.modal-overlay {
+  align-items: flex-end;
+  background: rgb(0 0 0 / 70%);
+  bottom: 0;
+  display: flex;
+  justify-content: center;
+  left: 0;
+  position: fixed;
+  right: 0;
+  top: 0;
+  z-index: 100;
+}
+
+.modal-sheet {
+  background: #1b1422;
+  border-radius: 1.25rem 1.25rem 0 0;
+  border-top: 2px solid #70407e;
+  display: grid;
+  gap: 0.5rem;
+  max-height: 75svh;
+  overflow-y: auto;
+  padding: 1.25rem 1rem 2rem;
+  width: 100%;
+  max-width: 46rem;
+}
+
+.modal-header {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.25rem;
+}
+
+.modal-title {
+  color: #f7f3eb;
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+.modal-close {
+  background: transparent;
+  border: 0;
+  border-radius: 999px;
+  color: #8a7a96;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 700;
+  padding: 0.35rem 0.6rem;
+}
+.modal-close:hover { color: #ff7184; }
+
+.modal-empty {
+  color: #5a4a66;
+  font-size: 0.9rem;
+  text-align: center;
+  padding: 1.5rem 0;
+}
+
+.bey-pick-list {
+  display: grid;
+  gap: 0.5rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.bey-pick-item {
+  align-items: center;
+  background: #221530;
+  border: 1px solid #3a2545;
+  border-radius: 0.85rem;
+  color: #f7f3eb;
+  cursor: pointer;
+  display: flex;
+  font: inherit;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  text-align: left;
+  transition: border-color 0.15s, background 0.15s;
+  width: 100%;
+}
+.bey-pick-item:hover {
+  background: #2a1a35;
+  border-color: #f3c449;
+}
+.bey-pick-item p {
+  color: #8a7a96;
+  font-size: 0.78rem;
+  margin: 0.15rem 0 0;
+}
+.bey-pick-item strong { font-size: 0.9rem; }
+
+/* ═══════════════════════════════════════════════════════════════
+   DESKTOP SIDEBAR NAV
+═══════════════════════════════════════════════════════════════ */
+
+/* Hidden on mobile; grid area assigned on desktop */
+.desktop-sidenav {
+  display: none;
+  flex-direction: column;
+  gap: 0.25rem;
+  grid-area: sidenav;
+  padding: 1.5rem 1rem;
+  border-right: 1px solid rgb(155 82 181 / 22%);
+  background: linear-gradient(180deg, #16101f 0%, #110d18 100%);
+  position: sticky;
+  top: 0;
+  height: calc(100svh - 4rem); /* below the topbar */
+  overflow-y: auto;
+}
+
+.sidenav-logo {
+  color: #f3c449;
+  font-size: 1.6rem;
+  margin-bottom: 1.5rem;
+  padding: 0 0.4rem;
+  text-shadow: 0 0 1rem rgb(243 196 73 / 50%);
+}
+
+.sidenav-link {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: 0.75rem;
+  color: #9c91a2;
+  cursor: pointer;
+  display: flex;
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 600;
+  gap: 0.75rem;
+  padding: 0.65rem 0.85rem;
+  text-align: left;
+  transition: background 0.15s, color 0.15s;
+  width: 100%;
+}
+.sidenav-link:hover {
+  background: rgb(155 82 181 / 12%);
+  color: #f7f3eb;
+  transform: none; /* override global button hover lift */
+}
+.sidenav-link-active {
+  background: rgb(243 196 73 / 10%);
+  color: #f3c449;
+  font-weight: 800;
+}
+.sidenav-link-active:hover {
+  background: rgb(243 196 73 / 16%);
+  color: #f3c449;
+}
+
+.sidenav-icon {
+  flex-shrink: 0;
+  opacity: 0.8;
+}
+.sidenav-link-active .sidenav-icon {
+  opacity: 1;
+}
+
+/* AppBar: assign grid area */
+.app-topbar {
+  grid-area: topbar;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   DESKTOP RESPONSIVE — wider page layouts
+═══════════════════════════════════════════════════════════════ */
+
+@media (min-width: 860px) {
+
+  /* Sidebar visible */
+  .desktop-sidenav {
+    display: flex;
+  }
+
+  /* Bottom nav hidden */
+  .bottom-navigation {
+    display: none !important;
+  }
+
+  /* Page content area */
+  .page-content {
+    grid-area: content;
+    padding: 2.5rem 3rem 3rem;
+    min-height: calc(100svh - 4rem);
+  }
+
+  /* App layout grid */
+  .app-layout {
+    display: grid;
+    grid-template-columns: 14rem 1fr;
+    grid-template-rows: auto 1fr;
+    grid-template-areas:
+      "topbar topbar"
+      "sidenav content";
+    max-width: 80rem;
+  }
+
+  /* Page header — bigger title on desktop */
+  .page-header h1 {
+    font-size: clamp(2.5rem, 4vw, 4rem);
+  }
+
+  /* Stack list: two-column grid on wide screens */
+  .stack-list {
+    grid-template-columns: repeat(auto-fill, minmax(22rem, 1fr));
+  }
+
+  /* Cards: a bit more padding */
+  .list-card,
+  .empty-state {
+    padding: 1.25rem 1.5rem;
+  }
+
+  /* Leaderboard controls: 4 columns */
+  .leaderboard-controls {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  /* Forms: max-width constraint so they don't stretch to full column */
+  .add-event-details-form,
+  .add-bey-form {
+    max-width: 42rem;
+  }
+
+  /* Score panel: side-by-side layout on desktop */
+  .event-matches-layout {
+    display: grid;
+    gap: 1.5rem;
+    grid-template-columns: 1fr 26rem;
+    align-items: start;
+  }
+
+  /* FAB: re-position relative to content column */
+  .MuiFab-root {
+    bottom: 2rem !important;
+    right: 2rem !important;
+  }
+
+  /* Bey carousel wraps instead of scrolling on desktop */
+  .bey-carousel {
+    flex-wrap: wrap;
+    overflow-x: visible;
+  }
+
+  /* Done bar: not full-bleed sticky on desktop, stays in content flow */
+  .done-bar {
+    position: static;
+    padding: 0;
+    margin-top: 1.5rem;
+  }
+  .btn-done {
+    max-width: 20rem;
+  }
+}
+
+/* Extra wide — keep content readable, not too wide */
+@media (min-width: 1280px) {
+  .app-layout {
+    grid-template-columns: 16rem 1fr;
+  }
+
+  .stack-list {
+    grid-template-columns: repeat(auto-fill, minmax(26rem, 1fr));
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   BEYS PAGE — ACCORDION
+═══════════════════════════════════════════════════════════════ */
+
+.bey-accordion {
+  /* override the default list-card flex to a column block */
+  display: block;
+  padding: 0;
+  overflow: hidden;
+}
+
+/* The always-visible trigger row */
+.bey-accordion-trigger {
+  align-items: flex-start;
+  background: transparent;
+  border: 0;
+  border-radius: inherit;
+  color: inherit;
+  cursor: pointer;
+  display: flex;
+  gap: 0.9rem;
+  padding: 1rem;
+  text-align: left;
+  width: 100%;
+  /* reset the global button transform hover */
+  transform: none;
+}
+.bey-accordion-trigger:hover {
+  background: rgb(255 255 255 / 3%);
+  transform: none;
+}
+.bey-accordion-open .bey-accordion-trigger {
+  border-bottom: 1px solid rgb(164 87 190 / 30%);
+}
+
+/* Keep the image centred with the first line of text */
+.bey-accordion-trigger .bey-image-placeholder {
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+}
+
+/* Stat summary always top-aligned */
+.bey-accordion-trigger .stat-summary {
+  align-self: flex-start;
+  margin-top: 0;
+}
+
+.bey-accordion-chevron {
+  align-self: flex-start;
+  color: #9c91a2;
+  flex-shrink: 0;
+  font-size: 0.65rem;
+  margin-left: 0;
+  margin-top: 0.2rem;
+}
+.bey-accordion-open .bey-accordion-chevron {
+  color: #f3c449;
+}
+
+/* ── Breakdown panel ── */
+.bey-breakdown {
+  padding: 0.85rem 1rem 1rem;
+}
+
+.bey-breakdown-headline {
+  font-size: 0.82rem;
+  margin: 0 0 0.85rem;
+}
+
+.bey-breakdown-section-label {
+  color: #9c91a2;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.09em;
+  margin-bottom: 0.4rem;
+  text-transform: uppercase;
+}
+
+.bey-breakdown-list {
+  display: grid;
+  gap: 0.2rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.bbd-row {
+  align-items: baseline;
+  display: flex;
+  font-size: 0.8rem;
+  gap: 0.6rem;
+}
+
+.bbd-code {
+  flex: 0 0 1.1rem;
+  font-family: monospace;
+  font-size: 0.9rem;
+  font-weight: 800;
+  text-align: center;
+}
+
+.bbd-label {
+  color: #c8c0d0;
+  flex: 1;
+}
+
+.bbd-count {
+  color: #f7f3eb;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.bbd-self {
+  color: #d7a0e8;
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.bey-breakdown-empty {
+  color: #5a4a66;
+  font-size: 0.82rem;
+  font-style: italic;
+  margin: 0.5rem 0 0;
+}
+
+/* Ensure card-main inside accordion trigger fills available space */
+.bey-accordion-trigger .card-main {
+  flex: 1;
+  min-width: 0;
+}
+
+/* h2 inside the accordion doesn't need bottom margin */
+.bey-accordion-trigger h2 {
+  margin-bottom: 0.15rem;
 }

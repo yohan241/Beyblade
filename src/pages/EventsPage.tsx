@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { PageHeader } from '../components/PageHeader'
 import { BeyName, getBeyDisplayName } from '../components/BeyName'
 import { beys, eventBeyEntries, events } from '../data/mockData'
@@ -9,6 +9,7 @@ import AddIcon from '@mui/icons-material/Add';
 
 
 export function EventsPage() {
+  const navigate = useNavigate();
 
   const eventsWithStats = events.map((event) => {
     const beysWithStats = eventBeyEntries
@@ -60,7 +61,7 @@ export function EventsPage() {
         ))}
       </div>
       <Box sx={{ '& > :not(style)': { m: 1 }, position: 'fixed', bottom: '4rem', right: '1rem' }}>
-      <Fab color="primary" aria-label="add">
+      <Fab color="primary" aria-label="add event" onClick={() => navigate('/events/new')}>
         <AddIcon />
       </Fab>
     </Box>
