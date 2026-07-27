@@ -148,14 +148,15 @@ export function EventDetailPage() {
               <div className="stat-summary event-detail-stats">
                 <span className="win-loss-summary">
                   <span className="stat-positive">{stats.wins}</span>–
-                  <span className="stat-negative">{stats.losses} - </span> 
+                  <span className="stat-negative">{stats.losses} </span>  - 
                   <span className={stats.winRate >= 50 ? 'stat-positive' : 'stat-negative'}>
                   {Math.round(stats.winRate)}% WR</span>
                 </span>
                 <span>{stats.wins}–{stats.losses}</span>
-                <span>{stats.pointsFor}–{stats.pointsAgainst} pts</span>
                 <span className={Math.round(stats.scoreOverOpponentRate ?? 0) >= 101 ? 'stat-positive' : 'stat-negative'}>
                   {Math.round(stats.scoreOverOpponentRate ?? 0)}% SOOR</span>
+                          <span>{stats.pointsFor}–{stats.pointsAgainst} pts</span>
+
                 <strong>{stats.statPoints ?? '—'}</strong>
               </div>
             </article>
