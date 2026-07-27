@@ -164,7 +164,8 @@ export function BeysPage() {
                     <span className={stats.winRate >= 50 ? 'stat-positive' : 'stat-negative'}>
                       {Math.round(stats.winRate)}% WR
                     </span>
-                    <span>{Math.round(stats.scoreOverOpponentRate ?? 0)}% SOOR</span>
+                    <span  className={Math.round(stats.scoreOverOpponentRate ?? 0) >= 101 ? 'stat-positive' : 'stat-negative'}>
+                      {Math.round(stats.scoreOverOpponentRate ?? 0)}% SOOR</span>
                     <strong>{stats.statPoints ?? '—'}</strong>
                   </div>
                   <span className="bey-accordion-chevron" aria-hidden="true">
