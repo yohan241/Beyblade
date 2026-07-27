@@ -1630,3 +1630,260 @@ code {
 .bey-accordion-trigger h2 {
   margin-bottom: 0.15rem;
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   BEY AVATAR
+═══════════════════════════════════════════════════════════════ */
+
+.bey-avatar {
+  border-radius: 0.7rem;
+  flex-shrink: 0;
+  overflow: hidden;
+  position: relative;
+}
+
+/* Sizes */
+.bey-avatar-sm  { height: 2.8rem; width: 2.8rem; border-radius: 0.5rem; }
+.bey-avatar-md  { height: 3rem;   width: 3rem; }
+.bey-avatar-lg  { height: 5rem;   width: 5rem;   border-radius: 0.9rem; }
+
+/* Image fills the square */
+.bey-avatar-img {
+  display: block;
+  height: 100%;
+  object-fit: cover;
+  width: 100%;
+}
+
+/* Placeholder — gradient bg + centred build text */
+.bey-avatar-placeholder {
+  align-items: center;
+  background: linear-gradient(135deg, #d692e7, #63377c 55%, #e9b533);
+  box-shadow: inset 0 0 0 2px rgb(247 243 235 / 30%);
+  display: flex;
+  justify-content: center;
+}
+
+.bey-avatar-label {
+  color: #fff;
+  font-size: 0.5rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  line-height: 1.2;
+  padding: 0.15rem 0.2rem;
+  text-align: center;
+  text-shadow: 0 1px 3px rgb(0 0 0 / 50%);
+  word-break: break-all;
+}
+.bey-avatar-sm  .bey-avatar-label { font-size: 0.42rem; }
+.bey-avatar-lg  .bey-avatar-label { font-size: 0.65rem; }
+
+/* Carousel chip — swap old .carousel-chip-image for avatar */
+.carousel-chip .bey-avatar { margin-bottom: 0.1rem; }
+
+/* ═══════════════════════════════════════════════════════════════
+   ADD BEY — square preview + crop UI
+═══════════════════════════════════════════════════════════════ */
+
+/* Square preview wrapper */
+.bey-avatar-preview-wrap {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 1rem;
+  overflow: hidden;
+  max-width: 18rem;
+  margin: 0 auto;
+}
+
+.bey-avatar-preview {
+  display: block;
+  height: 100%;
+  object-fit: cover;
+  width: 100%;
+}
+
+.bey-avatar-preview-hint {
+  background: rgb(0 0 0 / 50%);
+  bottom: 0;
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  left: 0;
+  padding: 0.35rem 0;
+  position: absolute;
+  right: 0;
+  text-align: center;
+}
+
+/* bey-image-placeholder-lg — keep it square */
+.bey-image-placeholder-lg {
+  aspect-ratio: 1;
+  height: auto;
+  max-width: 18rem;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* ── Crop UI ── */
+.crop-ui {
+  display: grid;
+  gap: 0.75rem;
+  max-width: 26rem;
+  margin: 0 auto;
+}
+
+.crop-container {
+  border-radius: 0.75rem;
+  overflow: hidden;
+  position: relative;
+  user-select: none;
+  width: 100%;
+}
+
+.crop-source-img {
+  display: block;
+  pointer-events: none;
+  width: 100%;
+}
+
+/* Dark overlay outside crop area */
+.crop-shade {
+  background: rgb(0 0 0 / 62%);
+  inset: 0;
+  pointer-events: none;
+  position: absolute;
+}
+
+/* Draggable crop box */
+.crop-box {
+  border: 2px solid #f3c449;
+  box-shadow: 0 0 0 1px rgb(0 0 0 / 40%);
+  cursor: move;
+  left: 0;
+  position: absolute;
+  top: 0;
+}
+
+/* Rule-of-thirds grid inside the box */
+.crop-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  height: 100%;
+  left: 0;
+  pointer-events: none;
+  position: absolute;
+  top: 0;
+  width: 100%;
+}
+.crop-grid > div {
+  border: 0.5px solid rgb(255 255 255 / 25%);
+}
+
+/* Resize handle — bottom-right corner */
+.crop-handle {
+  background: #f3c449;
+  border-radius: 2px;
+  bottom: -5px;
+  cursor: nwse-resize;
+  height: 14px;
+  position: absolute;
+  right: -5px;
+  width: 14px;
+}
+
+.crop-actions {
+  display: flex;
+  gap: 0.6rem;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   EDIT / DELETE ACTIONS
+═══════════════════════════════════════════════════════════════ */
+
+/* Beys page — actions at the bottom of accordion */
+.bey-accordion-actions {
+  border-top: 1px solid rgb(164 87 190 / 20%);
+  display: flex;
+  gap: 0.6rem;
+  margin-top: 0.85rem;
+  padding-top: 0.75rem;
+}
+
+/* Event detail page — actions below the header */
+.event-detail-actions {
+  display: flex;
+  gap: 0.6rem;
+  margin-bottom: 1.25rem;
+}
+
+.btn-edit {
+  background: transparent;
+  border: 1px solid #70407e;
+  border-radius: 999px;
+  color: #d7a0e8;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 0.4rem 1rem;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.btn-edit:hover {
+  background: #2a1535;
+  border-color: #f3c449;
+  color: #f3c449;
+}
+
+.btn-danger-outline {
+  background: transparent;
+  border: 1px solid #7a1d2e;
+  border-radius: 999px;
+  color: #ff7184;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 0.4rem 1rem;
+  transition: background 0.15s, border-color 0.15s;
+}
+.btn-danger-outline:hover {
+  background: #3d0e1a;
+  border-color: #ff7184;
+}
+
+/* Inline confirm box */
+.inline-confirm {
+  background: #1e1028;
+  border: 1px solid #7a1d2e;
+  border-radius: 0.85rem;
+  margin-bottom: 1rem;
+  padding: 1rem;
+}
+
+.inline-confirm-msg {
+  color: #f7f3eb;
+  font-size: 0.88rem;
+  margin: 0 0 0.75rem;
+}
+
+.inline-confirm-actions {
+  display: flex;
+  gap: 0.6rem;
+}
+
+.btn-danger {
+  background: #a02540;
+  border: 0;
+  border-radius: 999px;
+  color: #fff;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 700;
+  padding: 0.5rem 1.1rem;
+  transition: background 0.15s;
+}
+.btn-danger:hover { background: #c42e4e; }
+.btn-danger:disabled { background: #5a2030; color: #8a5060; cursor: not-allowed; }

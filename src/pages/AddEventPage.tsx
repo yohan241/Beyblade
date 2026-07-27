@@ -2,39 +2,39 @@ import { useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { PageHeader } from '../components/PageHeader'
 import { BeyName, getBeyDisplayName } from '../components/BeyName'
-import { beys as rosterBeys } from '../data/mockData'
+import { BeyAvatar } from '../components/BeyAvatar'
 import { calculateStatsFromRoundCodes } from '../lib/stats'
+import { useBeys } from '../hooks/useData'
+import { insertEvent, insertEntries } from '../lib/db'
+import type { Bey } from '../types/tracker'
+
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-/** One round recorded for a bey in this event */
 type RoundEntry = {
-  code: string       // '0'–'9'
-  isSelf: boolean    // true = self-finish (dot suffix, only valid for 2/3/4)
+  code: string
+  isSelf: boolean
 }
 
-/** Per-bey state inside the event form */
 type EventBeyState = {
   beyId: string
   rounds: RoundEntry[]
 }
 
-// ─── Score button definitions ─────────────────────────────────────────────────
-
 type ScoreBtn = {
   label: string
-  winCode: string   // digit to push when YOU score this
-  lossCode: string  // digit to push when OPPONENT scores this on you
+  winCode: string
+  lossCode: string
   pts: number
-  canSelf: boolean  // whether the SF? toggle is relevant
+  canSelf: boolean
 }
 
 const SCORE_BUTTONS: ScoreBtn[] = [
-  { label: 'Spin Finish',        winCode: '1', lossCode: '5', pts: 1, canSelf: false },
-  { label: 'Pocket Finish',      winCode: '2', lossCode: '6', pts: 2, canSelf: true  },
-  { label: 'Xtreme Finish',      winCode: '3', lossCode: '7', pts: 3, canSelf: true  },
-  { label: 'Burst Finish',       winCode: '4', lossCode: '8', pts: 4, canSelf: true  },
-  { label: 'Spin vs Stamina',    winCode: '0', lossCode: '5', pts: 2, canSelf: false },
-  { label: 'No Contact (launch)',winCode: '9', lossCode: '5', pts: 2, canSelf: false },
+  { label: 'Spin Finish',         winCode: '1', lossCode: '5', pts: 1, canSelf: false },
+  { label: 'Pocket Finish',       winCode: '2', lossCode: '6', pts: 2, canSelf: true  },
+  { label: 'Xtreme Finish',       winCode: '3', lossCode: '7', pts: 3, canSelf: true  },
+  { label: 'Burst Finish',        winCode: '4', lossCode: '8', pts: 4, canSelf: true  },
+  { label: 'Spin vs Stamina',     winCode: '0', lossCode: '5', pts: 2, canSelf: false },
+  { label: 'No Contact (launch)', winCode: '9', lossCode: '5', pts: 2, canSelf: false },
 ]
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -45,19 +45,19 @@ function roundsToCodeString(rounds: RoundEntry[]): string {
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
-/** Horizontal scrollable carousel of bey chips + trailing Add chip */
 function BeyCarousel({
   entries,
+  roster,
   activeBeyId,
   onSelect,
   onAddBey,
 }: {
   entries: EventBeyState[]
+  roster: Bey[]
   activeBeyId: string | null
   onSelect: (id: string) => void
   onAddBey: () => void
 }) {
-  const roster = rosterBeys
   return (
     <div className="bey-carousel" role="listbox" aria-label="Beys in this event">
       {entries.map(({ beyId, rounds }) => {
@@ -76,20 +76,14 @@ function BeyCarousel({
             aria-selected={isActive}
             type="button"
           >
-            <div className="carousel-chip-image" aria-hidden="true" />
-            <span className="carousel-chip-name">
-              {getBeyDisplayName(bey)}
-            </span>
+            <BeyAvatar bey={bey} size="sm" />
+            <span className="carousel-chip-name">{getBeyDisplayName(bey)}</span>
             {stats && (
-              <span className="carousel-chip-stat">
-                {stats.wins}–{stats.losses}
-              </span>
+              <span className="carousel-chip-stat">{stats.wins}–{stats.losses}</span>
             )}
           </button>
         )
       })}
-
-      {/* Always-visible Add chip at the end of the carousel */}
       <button
         className="carousel-chip carousel-chip-add"
         onClick={onAddBey}
@@ -105,32 +99,35 @@ function BeyCarousel({
   )
 }
 
-/** The live stats row shown per bey in the match list */
-function BeyStatRow({ beyId, rounds }: { beyId: string; rounds: RoundEntry[] }) {
-  const bey = rosterBeys.find((b) => b.id === beyId)
+function BeyStatRow({
+  beyId,
+  rounds,
+  roster,
+}: {
+  beyId: string
+  rounds: RoundEntry[]
+  roster: Bey[]
+}) {
+  const bey = roster.find((b) => b.id === beyId)
   const codeStr = roundsToCodeString(rounds)
   if (codeStr.length === 0) return null
   const stats = calculateStatsFromRoundCodes(beyId, getBeyDisplayName(bey), codeStr)
   return (
     <div className="bey-stat-row">
       <span className="bsr-frac">
-        <span className="stat-positive">{stats.wins}</span>
-        /
+        <span className="stat-positive">{stats.wins}</span>/
         <span className="stat-negative">{stats.losses}</span>
         <span className="bsr-label"> W/L</span>
       </span>
       <span className="bsr-frac">
-        <span className="stat-positive">{stats.pointsFor}</span>
-        –
+        <span className="stat-positive">{stats.pointsFor}</span>–
         <span className="stat-negative">{stats.pointsAgainst}</span>
         <span className="bsr-label"> pts</span>
       </span>
-      {stats.winRate !== undefined && (
-        <span className={stats.winRate >= 50 ? 'stat-positive' : 'stat-negative'}>
-          {Math.round(stats.winRate)}% WR
-        </span>
-      )}
-      {stats.scoreOverOpponentRate !== null && stats.scoreOverOpponentRate !== undefined && (
+      <span className={stats.winRate >= 50 ? 'stat-positive' : 'stat-negative'}>
+        {Math.round(stats.winRate)}% WR
+      </span>
+      {stats.scoreOverOpponentRate !== null && (
         <span>{Math.round(stats.scoreOverOpponentRate)}% SOOR</span>
       )}
       {stats.statPoints !== null && (
@@ -140,24 +137,25 @@ function BeyStatRow({ beyId, rounds }: { beyId: string; rounds: RoundEntry[] }) 
   )
 }
 
-/** Score entry panel (right panel in wireframe) */
 function ScorePanel({
   beyId,
   rounds,
+  roster,
   onAddRound,
   onUndo,
 }: {
   beyId: string
   rounds: RoundEntry[]
+  roster: Bey[]
   onAddRound: (round: RoundEntry) => void
   onUndo: () => void
 }) {
-  const bey = rosterBeys.find((b) => b.id === beyId)
+  const bey = roster.find((b) => b.id === beyId)
   const [isSelf, setIsSelf] = useState(false)
 
   function handleScore(btn: ScoreBtn, isWin: boolean) {
     const code = isWin ? btn.winCode : btn.lossCode
-    const applySelf = btn.canSelf && isSelf   // applies to both wins (2/3/4) and losses (6/7/8)
+    const applySelf = btn.canSelf && isSelf
     onAddRound({ code, isSelf: applySelf })
     setIsSelf(false)
   }
@@ -166,22 +164,17 @@ function ScorePanel({
 
   return (
     <div className="score-panel">
-      {/* Header */}
       <div className="score-panel-header">
         <span className="score-panel-name">{getBeyDisplayName(bey)}</span>
         <span className="score-panel-match">Match {rounds.length + 1}</span>
       </div>
 
-      {/* Round code tape */}
       {rounds.length > 0 && (
         <div className="round-tape">
           {rounds.map((r, i) => {
             const isWin = ['0','1','2','3','4','9'].includes(r.code)
             return (
-              <span
-                key={i}
-                className={`tape-code ${isWin ? 'stat-positive' : 'stat-negative'}`}
-              >
+              <span key={i} className={`tape-code ${isWin ? 'stat-positive' : 'stat-negative'}`}>
                 {r.code}{r.isSelf ? '.' : ''}
               </span>
             )
@@ -189,24 +182,17 @@ function ScorePanel({
         </div>
       )}
 
-      {/* Live stats */}
-      <BeyStatRow beyId={beyId} rounds={rounds} />
+      <BeyStatRow beyId={beyId} rounds={rounds} roster={roster} />
 
-      {/* Score buttons — each row: [← decrement label +2 →] style but here win/loss */}
       <div className="score-btn-grid">
         {SCORE_BUTTONS.map((btn) => (
           <div key={btn.label} className="score-btn-row">
-            {/* Loss (opponent scored on you) */}
             <button
               className="score-btn score-btn-loss"
               onClick={() => handleScore(btn, false)}
               type="button"
               aria-label={`Opponent ${btn.label}`}
-            >
-              ←
-            </button>
-
-            {/* Label */}
+            >←</button>
             <button
               className="score-btn-label"
               onClick={() => handleScore(btn, true)}
@@ -216,20 +202,15 @@ function ScorePanel({
               {btn.label}
               <span className="score-btn-pts">+{btn.pts}</span>
             </button>
-
-            {/* Win (you scored) */}
             <button
               className="score-btn score-btn-win"
               onClick={() => handleScore(btn, true)}
               type="button"
               aria-label={`You ${btn.label}`}
-            >
-              →
-            </button>
+            >→</button>
           </div>
         ))}
 
-        {/* SF? toggle + undo row */}
         <div className="score-panel-footer">
           <button
             className={`sf-toggle${isSelf ? ' sf-toggle-on' : ''}`}
@@ -239,22 +220,17 @@ function ScorePanel({
           >
             {isSelf ? '✓ Self Finish' : 'SF?'}
           </button>
-          <span className="sf-hint">
-            Applies to Pocket / Xtreme / Burst (wins &amp; losses)
-          </span>
+          <span className="sf-hint">Applies to Pocket / Xtreme / Burst (wins &amp; losses)</span>
           {rounds.length > 0 && (
             <button
               className="score-btn-undo"
               onClick={onUndo}
               type="button"
               aria-label="Undo last round"
-            >
-              ↩ Undo
-            </button>
+            >↩ Undo</button>
           )}
         </div>
 
-        {/* Last round reminder */}
         {lastRound && (
           <p className="last-round-reminder">
             Last:&nbsp;
@@ -273,17 +249,18 @@ function ScorePanel({
   )
 }
 
-/** Bey selector modal — pick from roster */
 function BeyPickerModal({
+  roster,
   alreadySelected,
   onPick,
   onClose,
 }: {
+  roster: Bey[]
   alreadySelected: string[]
   onPick: (beyId: string) => void
   onClose: () => void
 }) {
-  const available = rosterBeys.filter((b) => !alreadySelected.includes(b.id))
+  const available = roster.filter((b) => !alreadySelected.includes(b.id))
   return (
     <div className="modal-overlay" role="dialog" aria-modal="true" aria-label="Pick a Bey">
       <div className="modal-sheet">
@@ -302,12 +279,11 @@ function BeyPickerModal({
                   onClick={() => { onPick(bey.id); onClose() }}
                   type="button"
                 >
-                  <div className="bey-image-placeholder" aria-hidden="true" />
+                  <BeyAvatar bey={bey} size="md" />
                   <div>
                     <strong><BeyName bey={bey} /></strong>
                     <p>{bey.build}</p>
-                  </div>
-                </button>
+                  </div>                </button>
               </li>
             ))}
           </ul>
@@ -317,36 +293,30 @@ function BeyPickerModal({
   )
 }
 
-// ─── Main Page ────────────────────────────────────────────────────────────────
+// ─── Main page ────────────────────────────────────────────────────────────────
 
 type Step = 'details' | 'matches'
 
 export function AddEventPage() {
   const navigate = useNavigate()
+  const beysState = useBeys()
 
-  // Step
   const [step, setStep] = useState<Step>('details')
-
-  // Step 1 — event details
   const [eventName, setEventName] = useState('')
   const [eventDate, setEventDate] = useState(new Date().toISOString().slice(0, 10))
   const [detailsError, setDetailsError] = useState('')
-
-  // Step 2 — beys & matches
   const [eventBeys, setEventBeys] = useState<EventBeyState[]>([])
   const [activeBeyId, setActiveBeyId] = useState<string | null>(null)
   const [showPicker, setShowPicker] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState('')
 
   const panelRef = useRef<HTMLDivElement>(null)
-
-  // ── helpers ──
+  const roster = beysState.status === 'success' ? beysState.data : []
 
   function advanceToMatches(e: React.FormEvent) {
     e.preventDefault()
-    if (!eventName.trim()) {
-      setDetailsError('Event name is required.')
-      return
-    }
+    if (!eventName.trim()) { setDetailsError('Event name is required.'); return }
     setDetailsError('')
     setStep('matches')
   }
@@ -354,23 +324,18 @@ export function AddEventPage() {
   function addBeyToEvent(beyId: string) {
     setEventBeys((prev) => [...prev, { beyId, rounds: [] }])
     setActiveBeyId(beyId)
-    // scroll panel into view after render
     setTimeout(() => panelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50)
   }
 
   function addRound(beyId: string, round: RoundEntry) {
     setEventBeys((prev) =>
-      prev.map((eb) =>
-        eb.beyId === beyId ? { ...eb, rounds: [...eb.rounds, round] } : eb,
-      ),
+      prev.map((eb) => eb.beyId === beyId ? { ...eb, rounds: [...eb.rounds, round] } : eb),
     )
   }
 
   function undoLastRound(beyId: string) {
     setEventBeys((prev) =>
-      prev.map((eb) =>
-        eb.beyId === beyId ? { ...eb, rounds: eb.rounds.slice(0, -1) } : eb,
-      ),
+      prev.map((eb) => eb.beyId === beyId ? { ...eb, rounds: eb.rounds.slice(0, -1) } : eb),
     )
   }
 
@@ -379,16 +344,31 @@ export function AddEventPage() {
     if (activeBeyId === beyId) setActiveBeyId(null)
   }
 
-  function handleDone(e: React.FormEvent) {
+  async function handleDone(e: React.FormEvent) {
     e.preventDefault()
     if (eventBeys.length === 0) return
-    // TODO: persist event + entries to store / backend
-    navigate('/events')
+
+    setSaving(true)
+    setSaveError('')
+    try {
+      const newEvent = await insertEvent({ name: eventName, eventDate })
+      await insertEntries(
+        eventBeys.map(({ beyId, rounds }) => ({
+          eventId: newEvent.id,
+          beyId,
+          roundCodes: roundsToCodeString(rounds),
+        })),
+      )
+      navigate('/events')
+    } catch (err) {
+      setSaveError(err instanceof Error ? err.message : 'Failed to save event.')
+      setSaving(false)
+    }
   }
 
   const activeBeyEntry = eventBeys.find((eb) => eb.beyId === activeBeyId)
 
-  // ── Step 1: Event details ─────────────────────────────────────────────────
+  // ── Step 1 ────────────────────────────────────────────────────────────────
 
   if (step === 'details') {
     return (
@@ -402,7 +382,6 @@ export function AddEventPage() {
             </button>
           }
         />
-
         <form className="add-event-details-form" onSubmit={advanceToMatches} noValidate>
           <label className="form-label">
             Event name <span className="form-required">*</span>
@@ -417,7 +396,6 @@ export function AddEventPage() {
             />
             {detailsError && <span className="form-error-msg">{detailsError}</span>}
           </label>
-
           <label className="form-label">
             Date
             <input
@@ -427,7 +405,6 @@ export function AddEventPage() {
               value={eventDate}
             />
           </label>
-
           <div className="form-actions">
             <button type="submit" className="btn-primary">Next: Add Beys →</button>
             <button type="button" className="btn-secondary" onClick={() => navigate('/events')}>
@@ -439,7 +416,7 @@ export function AddEventPage() {
     )
   }
 
-  // ── Step 2: Beys & matches ────────────────────────────────────────────────
+  // ── Step 2 ────────────────────────────────────────────────────────────────
 
   return (
     <section>
@@ -453,9 +430,14 @@ export function AddEventPage() {
         }
       />
 
-      {/* ── Carousel (always shown once we're on step 2, includes Add chip) ── */}
+      {beysState.status === 'loading' && <p className="page-intro">Loading beys…</p>}
+      {beysState.status === 'error' && (
+        <p className="form-error-msg">{beysState.error}</p>
+      )}
+
       <BeyCarousel
         entries={eventBeys}
+        roster={roster}
         activeBeyId={activeBeyId}
         onSelect={(id) => {
           setActiveBeyId((prev) => (prev === id ? null : id))
@@ -464,23 +446,24 @@ export function AddEventPage() {
         onAddBey={() => setShowPicker(true)}
       />
 
-      {/* ── Bey list — only visible when no bey is selected (score panel takes over) ── */}
       {eventBeys.length > 0 && !activeBeyId && (
         <div className="event-bey-list">
           {eventBeys.map(({ beyId, rounds }) => {
-            const bey = rosterBeys.find((b) => b.id === beyId)
+            const bey = roster.find((b) => b.id === beyId)
             const codeStr = roundsToCodeString(rounds)
             return (
               <article
                 key={beyId}
-                className={`event-bey-entry${activeBeyId === beyId ? ' event-bey-entry-active' : ''}`}
+                className="event-bey-entry"
                 onClick={() => setActiveBeyId((prev) => (prev === beyId ? null : beyId))}
                 role="button"
                 tabIndex={0}
-                onKeyDown={(e) => e.key === 'Enter' && setActiveBeyId((prev) => (prev === beyId ? null : beyId))}
+                onKeyDown={(e) =>
+                  e.key === 'Enter' && setActiveBeyId((prev) => (prev === beyId ? null : beyId))
+                }
               >
                 <div className="ebe-left">
-                  <div className="bey-image-placeholder" aria-hidden="true" />
+                  <BeyAvatar bey={bey} size="md" />
                 </div>
                 <div className="ebe-main">
                   <strong className="ebe-name"><BeyName bey={bey} /></strong>
@@ -495,59 +478,56 @@ export function AddEventPage() {
                   ) : (
                     <span className="ebe-empty">No rounds yet — tap to score</span>
                   )}
-                  {/* Only show stats when this bey is NOT the active one (score panel shows instead) */}
-                  {activeBeyId !== beyId && <BeyStatRow beyId={beyId} rounds={rounds} />}
+                  <BeyStatRow beyId={beyId} rounds={rounds} roster={roster} />
                 </div>
                 <button
                   className="ebe-remove"
                   onClick={(e) => { e.stopPropagation(); removeBeyFromEvent(beyId) }}
                   type="button"
                   aria-label={`Remove ${getBeyDisplayName(bey)} from event`}
-                >
-                  ✕
-                </button>
+                >✕</button>
               </article>
             )
           })}
         </div>
       )}
 
-      {/* ── Score panel (shows when a bey is active) ── */}
       {activeBeyEntry && (
         <div ref={panelRef} className="score-panel-wrapper">
           <ScorePanel
             beyId={activeBeyEntry.beyId}
             rounds={activeBeyEntry.rounds}
+            roster={roster}
             onAddRound={(round) => addRound(activeBeyEntry.beyId, round)}
             onUndo={() => undoLastRound(activeBeyEntry.beyId)}
           />
         </div>
       )}
 
-      {/* ── Empty state ── */}
       {eventBeys.length === 0 && (
         <article className="empty-state">
           <h2>No Beys yet</h2>
-          <p>Tap the <strong>+ Add Bey</strong> chip in the row above to pick which Beys you used in this event.</p>
+          <p>Tap the <strong>+ Add Bey</strong> chip above to pick which Beys you used.</p>
         </article>
       )}
 
-      {/* ── Done button ── */}
+      {saveError && <p className="form-error-msg" style={{ marginTop: '0.5rem' }}>{saveError}</p>}
+
       <form onSubmit={handleDone}>
         <div className="done-bar">
           <button
             className="btn-done"
-            disabled={eventBeys.length === 0}
+            disabled={eventBeys.length === 0 || saving}
             type="submit"
           >
-            Done
+            {saving ? 'Saving…' : 'Done'}
           </button>
         </div>
       </form>
 
-      {/* ── Bey picker modal ── */}
       {showPicker && (
         <BeyPickerModal
+          roster={roster}
           alreadySelected={eventBeys.map((eb) => eb.beyId)}
           onPick={addBeyToEvent}
           onClose={() => setShowPicker(false)}
