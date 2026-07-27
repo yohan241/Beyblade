@@ -96,7 +96,7 @@ export function LeaderboardPage() {
                 <span className={stats.winRate >= 50 ? 'stat-positive' : 'stat-negative'}>
                   {Math.round(stats.winRate)}% WR
                 </span>
-                <span className={stats.scoreOverOpponentRate >= 101 ? 'stat-positive' : 'stat-negative'}>
+                <span className={Math.round(stats.scoreOverOpponentRate ?? 0) >= 101 ? 'stat-positive' : 'stat-negative'}>
                   {Math.round(stats.scoreOverOpponentRate ?? 0)}% SOOR</span>
                 <strong>{stats.statPoints ?? '—'}</strong>
               </div>
