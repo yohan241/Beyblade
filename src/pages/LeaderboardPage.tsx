@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { BeyName, getBeyDisplayName } from '../components/BeyName'
 import { BeyAvatar } from '../components/BeyAvatar'
+import { BeyBreakdown } from '../components/BeyBreakdown'
 import { PageHeader } from '../components/PageHeader'
 import { calculateStatsFromRoundCodes } from '../lib/stats'
 import { useBeys, useAllEntries } from '../hooks/useData'
@@ -13,6 +14,7 @@ export function LeaderboardPage() {
   const [minimumMatchesInput, setMinimumMatchesInput] = useState('40')
   const [maximumMatchesInput, setMaximumMatchesInput] = useState('')
   const [sortBy, setSortBy] = useState<SortOption>('statPoints')
+  const [expandedId, setExpandedId] = useState<string | null>(null)
 
   const minimumMatches =
     minimumMatchesInput === '' ? 0 : Math.max(0, Number(minimumMatchesInput))
@@ -30,13 +32,16 @@ export function LeaderboardPage() {
               .filter((e) => e.beyId === bey.id)
               .map((e) => e.roundCodes)
               .join('')
-            return calculateStatsFromRoundCodes(bey.id, getBeyDisplayName(bey), allRoundCodes)
+            return {
+              stats: calculateStatsFromRoundCodes(bey.id, getBeyDisplayName(bey), allRoundCodes),
+              allRoundCodes,
+            }
           })
-          .filter((s) => s.matches >= minimumMatches && s.matches <= maximumMatches)
+          .filter((s) => s.stats.matches >= minimumMatches && s.stats.matches <= maximumMatches)
           .sort((a, b) => {
-            const av = a[sortBy] ?? -Infinity
-            const bv = b[sortBy] ?? -Infinity
-            return bv - av || a.name.localeCompare(b.name)
+            const av = a.stats[sortBy] ?? -Infinity
+            const bv = b.stats[sortBy] ?? -Infinity
+            return bv - av || a.stats.name.localeCompare(b.stats.name)
           })
       : []
 
@@ -91,32 +96,55 @@ export function LeaderboardPage() {
             <p>Try lowering the minimum matches requirement.</p>
           </article>
         )}
-        {overallStats.map((stats, index) => {
+
+        {overallStats.map(({ stats, allRoundCodes }, index) => {
           const bey = beysState.status === 'success'
             ? beysState.data.find((b) => b.id === stats.id)
             : undefined
+          const isExpanded = expandedId === stats.id
+
           return (
-            <article className="list-card" key={stats.id}>
-              <p className="rank-number">#{index + 1}</p>
-              <BeyAvatar bey={bey} size="md" />
-              <div className="card-main">
-                <h2><BeyName bey={bey} /></h2>
-                <p>
-                  <span className="stat-positive">{stats.wins}</span>–
-                  <span className="stat-negative">{stats.losses}</span> ({stats.matches}) ·{' '}
-                  <span className="stat-positive">{stats.pointsFor}</span>–
-                  <span className="stat-negative">{stats.pointsAgainst}</span> points
-                </p>
-              </div>
-              <div className="stat-summary">
-                <span className={stats.winRate >= 50 ? 'stat-positive' : 'stat-negative'}>
-                  {Math.round(stats.winRate)}% WR
+            <div
+              key={stats.id}
+              className={`list-card bey-card bey-accordion${isExpanded ? ' bey-accordion-open' : ''}`}
+            >
+              {/* ── Collapsed header row ── */}
+              <button
+                className="bey-accordion-trigger"
+                onClick={() => setExpandedId((prev) => (prev === stats.id ? null : stats.id))}
+                type="button"
+                aria-expanded={isExpanded}
+              >
+                <p className="rank-number">#{index + 1}</p>
+                <BeyAvatar bey={bey} size="md" />
+                <div className="card-main">
+                  <h2><BeyName bey={bey} /></h2>
+                  <p>
+                    <span className="stat-positive">{stats.wins}</span>–
+                    <span className="stat-negative">{stats.losses}</span> ({stats.matches}) ·{' '}
+                    <span className="stat-positive">{stats.pointsFor}</span>–
+                    <span className="stat-negative">{stats.pointsAgainst}</span> pts
+                  </p>
+                </div>
+                <div className="stat-summary">
+                  <span className={stats.winRate >= 50 ? 'stat-positive' : 'stat-negative'}>
+                    {Math.round(stats.winRate)}% WR
+                  </span>
+                  <span className={Math.round(stats.scoreOverOpponentRate ?? 0) >= 101 ? 'stat-positive' : 'stat-negative'}>
+                    {Math.round(stats.scoreOverOpponentRate ?? 0)}% SOOR
+                  </span>
+                  <strong>{stats.statPoints ?? '—'}</strong>
+                </div>
+                <span className="bey-accordion-chevron" aria-hidden="true">
+                  {isExpanded ? '▲' : '▼'}
                 </span>
-                <span className={Math.round(stats.scoreOverOpponentRate ?? 0) >= 101 ? 'stat-positive' : 'stat-negative'}>
-                  {Math.round(stats.scoreOverOpponentRate ?? 0)}% SOOR</span>
-                <strong>{stats.statPoints ?? '—'}</strong>
-              </div>
-            </article>
+              </button>
+
+              {/* ── Expanded breakdown ── */}
+              {isExpanded && (
+                <BeyBreakdown stats={stats} allRoundCodes={allRoundCodes} />
+              )}
+            </div>
           )
         })}
       </div>
