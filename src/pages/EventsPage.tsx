@@ -1,4 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom'
+import { useState } from 'react'
 import { PageHeader } from '../components/PageHeader'
 import { BeyName, getBeyDisplayName } from '../components/BeyName'
 import { calculateStatsFromRoundCodes } from '../lib/stats'
@@ -12,6 +13,7 @@ export function EventsPage() {
   const beysState = useBeys()
   const eventsState = useEvents()
   const entriesState = useAllEntries()
+  const [search, setSearch] = useState('')
 
   const loading =
     beysState.status === 'loading' ||
@@ -50,11 +52,24 @@ export function EventsPage() {
 
           return { ...event, beys: beysWithStats, topBeys }
         })
+          .filter((event) =>
+            !search.trim() || event.name.toLowerCase().includes(search.toLowerCase())
+          )
       : []
 
   return (
     <section>
       <PageHeader title="Events" />
+
+      <div className="page-search-wrap">
+        <input
+          className="page-search"
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search events…"
+          type="search"
+          value={search}
+        />
+      </div>
 
       {loading && <p className="page-intro">Loading…</p>}
       {error && <p className="form-error-msg">{error}</p>}

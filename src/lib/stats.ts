@@ -1,16 +1,18 @@
 import type { BuildStats, BuildSummary } from '../types/tracker'
 
 const roundPointValues: Record<string, number> = {
-  '0': 2,
-  '1': 1,
-  '2': 2,
-  '3': 3,
-  '4': 4,
-  '5': -1,
-  '6': -2,
-  '7': -3,
-  '8': -4,
-  '9': 2,
+  '0': 2,   // Spin vs Stamina win
+  '1': 1,   // Spin Finish win
+  '2': 2,   // Pocket Finish win
+  '3': 3,   // Xtreme Finish win
+  '4': 4,   // Burst Finish win
+  '5': -1,  // Opp Spin Finish
+  '6': -2,  // Opp Pocket Finish
+  '7': -3,  // Opp Xtreme Finish
+  '8': -4,  // Opp Burst Finish
+  '9': 2,   // No Contact win
+  'a': -2,  // Opp Spin vs Stamina (loss, displayed as red 0)
+  'b': -2,  // Opp No Contact (loss, displayed as red 9)
 }
 
 export type ParsedRound = {
@@ -25,11 +27,11 @@ export function parseRoundCodes(roundCodes: string): ParsedRound[] {
     return []
   }
 
-  if (!/^(?:[0-9]\.?)+$/.test(normalizedCodes)) {
-    throw new Error('Round codes can only contain a digit from 0 to 9 and a period.')
+  if (!/^(?:[0-9ab]\.?)+$/.test(normalizedCodes)) {
+    throw new Error('Round codes can only contain a digit (0–9) or letter (a, b) and a period.')
   }
 
-  const parsedRounds = [...normalizedCodes.matchAll(/([0-9])(\.)?/g)].map((match) => ({
+  const parsedRounds = [...normalizedCodes.matchAll(/([0-9ab])(\.)?/g)].map((match) => ({
     code: match[1],
     isSelfFinish: match[2] === '.',
   }))

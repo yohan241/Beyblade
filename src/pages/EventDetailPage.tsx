@@ -57,8 +57,14 @@ export function EventDetailPage() {
   ) return null
 
   const event = eventState.data!
-  const entries = entriesState.data
   const beys = beysState.data
+
+  // Sort entries by statPoints descending
+  const entries = [...entriesState.data].sort((a, b) => {
+    const statsA = calculateStatsFromRoundCodes(a.id, getBeyDisplayName(beys.find(x => x.id === a.beyId)), a.roundCodes)
+    const statsB = calculateStatsFromRoundCodes(b.id, getBeyDisplayName(beys.find(x => x.id === b.beyId)), b.roundCodes)
+    return (statsB.statPoints ?? -Infinity) - (statsA.statPoints ?? -Infinity)
+  })
 
   return (
     <section>

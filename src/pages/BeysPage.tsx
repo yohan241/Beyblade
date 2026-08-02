@@ -91,14 +91,23 @@ export function BeysPage() {
 
   const [expandedBeyId, setExpandedBeyId] = useState<string | null>(null)
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
-  // Local list so we can remove deleted beys without refetching
   const [deletedIds, setDeletedIds] = useState<string[]>([])
+  const [search, setSearch] = useState('')
 
   const loading = beysState.status === 'loading' || entriesState.status === 'loading'
   const error = beysState.error ?? entriesState.error
 
   const visibleBeys = beysState.status === 'success'
-    ? beysState.data.filter((b) => !deletedIds.includes(b.id))
+    ? beysState.data
+        .filter((b) => !deletedIds.includes(b.id))
+        .filter((b) => {
+          if (!search.trim()) return true
+          const q = search.toLowerCase()
+          return (
+            b.build.toLowerCase().includes(q) ||
+            (b.name ?? '').toLowerCase().includes(q)
+          )
+        })
     : []
 
   function handleDeleted(beyId: string) {
@@ -110,6 +119,16 @@ export function BeysPage() {
   return (
     <section>
       <PageHeader title="Beys" />
+
+      <div className="page-search-wrap">
+        <input
+          className="page-search"
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search beys…"
+          type="search"
+          value={search}
+        />
+      </div>
 
       {loading && <p className="page-intro">Loading…</p>}
       {error && <p className="form-error-msg">{error}</p>}

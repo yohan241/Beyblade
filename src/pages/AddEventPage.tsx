@@ -5,36 +5,41 @@ import { BeyName, getBeyDisplayName } from '../components/BeyName'
 import { BeyAvatar } from '../components/BeyAvatar'
 import { calculateStatsFromRoundCodes } from '../lib/stats'
 import { useBeys } from '../hooks/useData'
-import { insertEvent, insertEntries } from '../lib/db'
+import { insertEvent, insertEntries, insertBey } from '../lib/db'
 import type { Bey } from '../types/tracker'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 type RoundEntry = {
-  code: string
+  code: string   // '0'–'9', 'a', 'b'
   isSelf: boolean
 }
 
 type EventBeyState = {
   beyId: string
   rounds: RoundEntry[]
+  redoStack: RoundEntry[]   // rounds that were undone, available to redo
 }
 
 type ScoreBtn = {
   label: string
   winCode: string
   lossCode: string
-  pts: number
+  winPts: number
+  lossPts: number
   canSelf: boolean
+  // display overrides: what digit/char to show in the tape for the loss code
+  lossDisplay?: string
 }
 
+// lossDisplay is what the user sees in the round tape for a/b codes
 const SCORE_BUTTONS: ScoreBtn[] = [
-  { label: 'Spin Finish',         winCode: '1', lossCode: '5', pts: 1, canSelf: false },
-  { label: 'Pocket Finish',       winCode: '2', lossCode: '6', pts: 2, canSelf: true  },
-  { label: 'Xtreme Finish',       winCode: '3', lossCode: '7', pts: 3, canSelf: true  },
-  { label: 'Burst Finish',        winCode: '4', lossCode: '8', pts: 4, canSelf: true  },
-  { label: 'Spin vs Stamina',     winCode: '0', lossCode: '5', pts: 2, canSelf: false },
-  { label: 'No Contact (launch)', winCode: '9', lossCode: '5', pts: 2, canSelf: false },
+  { label: 'Spin Finish',         winCode: '1', lossCode: '5', winPts: 1, lossPts: 1, canSelf: false },
+  { label: 'Pocket Finish',       winCode: '2', lossCode: '6', winPts: 2, lossPts: 2, canSelf: true  },
+  { label: 'Xtreme Finish',       winCode: '3', lossCode: '7', winPts: 3, lossPts: 3, canSelf: true  },
+  { label: 'Burst Finish',        winCode: '4', lossCode: '8', winPts: 4, lossPts: 4, canSelf: true  },
+  { label: 'Spin vs Stamina',     winCode: '0', lossCode: 'a', winPts: 2, lossPts: 2, canSelf: false, lossDisplay: '0' },
+  { label: 'No Contact (launch)', winCode: '9', lossCode: 'b', winPts: 2, lossPts: 2, canSelf: false, lossDisplay: '9' },
 ]
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -43,14 +48,21 @@ function roundsToCodeString(rounds: RoundEntry[]): string {
   return rounds.map((r) => r.code + (r.isSelf ? '.' : '')).join('')
 }
 
+/** What to show in the round tape for a given code */
+function tapeDisplay(code: string): string {
+  if (code === 'a') return '0'
+  if (code === 'b') return '9'
+  return code
+}
+
+function isWinCode(code: string): boolean {
+  return ['0', '1', '2', '3', '4', '9'].includes(code)
+}
+
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
 function BeyCarousel({
-  entries,
-  roster,
-  activeBeyId,
-  onSelect,
-  onAddBey,
+  entries, roster, activeBeyId, onSelect, onAddBey,
 }: {
   entries: EventBeyState[]
   roster: Bey[]
@@ -78,9 +90,7 @@ function BeyCarousel({
           >
             <BeyAvatar bey={bey} size="sm" />
             <span className="carousel-chip-name">{getBeyDisplayName(bey)}</span>
-            {stats && (
-              <span className="carousel-chip-stat">{stats.wins}–{stats.losses}</span>
-            )}
+            {stats && <span className="carousel-chip-stat">{stats.wins}–{stats.losses}</span>}
           </button>
         )
       })}
@@ -99,15 +109,7 @@ function BeyCarousel({
   )
 }
 
-function BeyStatRow({
-  beyId,
-  rounds,
-  roster,
-}: {
-  beyId: string
-  rounds: RoundEntry[]
-  roster: Bey[]
-}) {
+function BeyStatRow({ beyId, rounds, roster }: { beyId: string; rounds: RoundEntry[]; roster: Bey[] }) {
   const bey = roster.find((b) => b.id === beyId)
   const codeStr = roundsToCodeString(rounds)
   if (codeStr.length === 0) return null
@@ -138,17 +140,15 @@ function BeyStatRow({
 }
 
 function ScorePanel({
-  beyId,
-  rounds,
-  roster,
-  onAddRound,
-  onUndo,
+  beyId, rounds, redoStack, roster, onAddRound, onUndo, onRedo,
 }: {
   beyId: string
   rounds: RoundEntry[]
+  redoStack: RoundEntry[]
   roster: Bey[]
   onAddRound: (round: RoundEntry) => void
   onUndo: () => void
+  onRedo: () => void
 }) {
   const bey = roster.find((b) => b.id === beyId)
   const [isSelf, setIsSelf] = useState(false)
@@ -169,16 +169,14 @@ function ScorePanel({
         <span className="score-panel-match">Match {rounds.length + 1}</span>
       </div>
 
+      {/* Round tape */}
       {rounds.length > 0 && (
         <div className="round-tape">
-          {rounds.map((r, i) => {
-            const isWin = ['0','1','2','3','4','9'].includes(r.code)
-            return (
-              <span key={i} className={`tape-code ${isWin ? 'stat-positive' : 'stat-negative'}`}>
-                {r.code}{r.isSelf ? '.' : ''}
-              </span>
-            )
-          })}
+          {rounds.map((r, i) => (
+            <span key={i} className={`tape-code ${isWinCode(r.code) ? 'stat-positive' : 'stat-negative'}`}>
+              {tapeDisplay(r.code)}{r.isSelf ? '.' : ''}
+            </span>
+          ))}
         </div>
       )}
 
@@ -187,30 +185,41 @@ function ScorePanel({
       <div className="score-btn-grid">
         {SCORE_BUTTONS.map((btn) => (
           <div key={btn.label} className="score-btn-row">
+            {/* Loss arrow — shows -pts */}
             <button
               className="score-btn score-btn-loss"
               onClick={() => handleScore(btn, false)}
               type="button"
               aria-label={`Opponent ${btn.label}`}
-            >←</button>
+            >
+              <span className="score-btn-arrow">←</span>
+              <span className="score-btn-side-pts">–{btn.lossPts}</span>
+            </button>
+
+            {/* Centre label */}
             <button
               className="score-btn-label"
               onClick={() => handleScore(btn, true)}
               type="button"
-              aria-label={`You: ${btn.label} (+${btn.pts})`}
+              aria-label={`You: ${btn.label} (+${btn.winPts})`}
             >
               {btn.label}
-              <span className="score-btn-pts">+{btn.pts}</span>
             </button>
+
+            {/* Win arrow — shows +pts */}
             <button
               className="score-btn score-btn-win"
               onClick={() => handleScore(btn, true)}
               type="button"
               aria-label={`You ${btn.label}`}
-            >→</button>
+            >
+              <span className="score-btn-side-pts">+{btn.winPts}</span>
+              <span className="score-btn-arrow">→</span>
+            </button>
           </div>
         ))}
 
+        {/* Footer: SF toggle + undo + redo */}
         <div className="score-panel-footer">
           <button
             className={`sf-toggle${isSelf ? ' sf-toggle-on' : ''}`}
@@ -220,22 +229,31 @@ function ScorePanel({
           >
             {isSelf ? '✓ Self Finish' : 'SF?'}
           </button>
-          <span className="sf-hint">Applies to Pocket / Xtreme / Burst (wins &amp; losses)</span>
-          {rounds.length > 0 && (
+          <span className="sf-hint">Pocket / Xtreme / Burst (wins &amp; losses)</span>
+          <div className="score-undo-redo">
             <button
               className="score-btn-undo"
               onClick={onUndo}
+              disabled={rounds.length === 0}
               type="button"
               aria-label="Undo last round"
             >↩ Undo</button>
-          )}
+            <button
+              className="score-btn-redo"
+              onClick={onRedo}
+              disabled={redoStack.length === 0}
+              type="button"
+              aria-label="Redo last undone round"
+            >Redo ↪</button>
+          </div>
         </div>
 
+        {/* Last round reminder */}
         {lastRound && (
           <p className="last-round-reminder">
             Last:&nbsp;
-            <span className={['0','1','2','3','4','9'].includes(lastRound.code) ? 'stat-positive' : 'stat-negative'}>
-              {lastRound.code}{lastRound.isSelf ? '.' : ''}
+            <span className={isWinCode(lastRound.code) ? 'stat-positive' : 'stat-negative'}>
+              {tapeDisplay(lastRound.code)}{lastRound.isSelf ? '.' : ''}
             </span>
             &nbsp;—&nbsp;
             {SCORE_BUTTONS.find(
@@ -250,17 +268,50 @@ function ScorePanel({
 }
 
 function BeyPickerModal({
-  roster,
-  alreadySelected,
-  onPick,
-  onClose,
+  roster, alreadySelected, onPick, onClose, onBeyCreated,
 }: {
   roster: Bey[]
   alreadySelected: string[]
   onPick: (beyId: string) => void
   onClose: () => void
+  onBeyCreated: (bey: Bey) => void
 }) {
-  const available = roster.filter((b) => !alreadySelected.includes(b.id))
+  const [search, setSearch] = useState('')
+  const [showNewForm, setShowNewForm] = useState(false)
+  const [newBuild, setNewBuild] = useState('')
+  const [newNickname, setNewNickname] = useState('')
+  const [creating, setCreating] = useState(false)
+  const [createError, setCreateError] = useState('')
+
+  const available = roster
+    .filter((b) => !alreadySelected.includes(b.id))
+    .filter((b) => {
+      if (!search.trim()) return true
+      const q = search.toLowerCase()
+      return (
+        b.build.toLowerCase().includes(q) ||
+        (b.name ?? '').toLowerCase().includes(q)
+      )
+    })
+
+  async function handleCreate(e: React.FormEvent) {
+    e.preventDefault()
+    if (!newBuild.trim()) { setCreateError('Build string is required.'); return }
+    setCreating(true)
+    try {
+      const created = await insertBey({
+        name: newNickname.trim() || undefined,
+        build: newBuild.trim(),
+      })
+      onBeyCreated(created)
+      onPick(created.id)
+      onClose()
+    } catch (err) {
+      setCreateError(err instanceof Error ? err.message : 'Failed to create Bey.')
+      setCreating(false)
+    }
+  }
+
   return (
     <div className="modal-overlay" role="dialog" aria-modal="true" aria-label="Pick a Bey">
       <div className="modal-sheet">
@@ -268,8 +319,70 @@ function BeyPickerModal({
           <h2 className="modal-title">Add Bey to Event</h2>
           <button className="modal-close" onClick={onClose} type="button" aria-label="Close">✕</button>
         </div>
-        {available.length === 0 ? (
-          <p className="modal-empty">All your Beys are already in this event.</p>
+
+        {/* Search */}
+        <div className="modal-search-wrap">
+          <input
+            autoFocus
+            className="modal-search"
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search beys…"
+            type="search"
+            value={search}
+          />
+        </div>
+
+        {/* New bey quick-add */}
+        {!showNewForm ? (
+          <button
+            className="modal-new-bey-btn"
+            onClick={() => setShowNewForm(true)}
+            type="button"
+          >
+            + Create new Bey
+          </button>
+        ) : (
+          <form className="modal-new-bey-form" onSubmit={handleCreate} noValidate>
+            <p className="modal-new-bey-title">New Bey</p>
+            <input
+              autoFocus
+              className={`form-input${createError ? ' form-input-error' : ''}`}
+              maxLength={32}
+              onChange={(e) => { setNewBuild(e.target.value); setCreateError('') }}
+              placeholder="Build string e.g. WR 1-60H *"
+              type="text"
+              value={newBuild}
+            />
+            <input
+              className="form-input"
+              maxLength={48}
+              onChange={(e) => setNewNickname(e.target.value)}
+              placeholder="Nickname (optional)"
+              type="text"
+              value={newNickname}
+            />
+            {createError && <span className="form-error-msg">{createError}</span>}
+            <div className="modal-new-bey-actions">
+              <button className="btn-primary" disabled={creating} type="submit">
+                {creating ? 'Creating…' : 'Create & Add'}
+              </button>
+              <button
+                className="btn-secondary"
+                disabled={creating}
+                onClick={() => { setShowNewForm(false); setNewBuild(''); setNewNickname(''); setCreateError('') }}
+                type="button"
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        )}
+
+        {/* Bey list */}
+        {available.length === 0 && !showNewForm ? (
+          <p className="modal-empty">
+            {search.trim() ? `No beys match "${search}"` : 'All your Beys are already in this event.'}
+          </p>
         ) : (
           <ul className="bey-pick-list">
             {available.map((bey) => (
@@ -283,7 +396,8 @@ function BeyPickerModal({
                   <div>
                     <strong><BeyName bey={bey} /></strong>
                     <p>{bey.build}</p>
-                  </div>                </button>
+                  </div>
+                </button>
               </li>
             ))}
           </ul>
@@ -310,9 +424,16 @@ export function AddEventPage() {
   const [showPicker, setShowPicker] = useState(false)
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState('')
+  // Extra beys created from the picker that aren't in the fetched roster yet
+  const [localRoster, setLocalRoster] = useState<Bey[]>([])
 
   const panelRef = useRef<HTMLDivElement>(null)
-  const roster = beysState.status === 'success' ? beysState.data : []
+  const fetchedRoster = beysState.status === 'success' ? beysState.data : []
+  // Merge fetched roster with any beys created mid-session
+  const roster = [
+    ...fetchedRoster,
+    ...localRoster.filter((lb) => !fetchedRoster.some((fb) => fb.id === lb.id)),
+  ]
 
   function advanceToMatches(e: React.FormEvent) {
     e.preventDefault()
@@ -322,20 +443,47 @@ export function AddEventPage() {
   }
 
   function addBeyToEvent(beyId: string) {
-    setEventBeys((prev) => [...prev, { beyId, rounds: [] }])
+    if (eventBeys.some((eb) => eb.beyId === beyId)) return
+    setEventBeys((prev) => [...prev, { beyId, rounds: [], redoStack: [] }])
     setActiveBeyId(beyId)
     setTimeout(() => panelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50)
   }
 
   function addRound(beyId: string, round: RoundEntry) {
     setEventBeys((prev) =>
-      prev.map((eb) => eb.beyId === beyId ? { ...eb, rounds: [...eb.rounds, round] } : eb),
+      prev.map((eb) =>
+        eb.beyId === beyId
+          ? { ...eb, rounds: [...eb.rounds, round], redoStack: [] }
+          : eb,
+      ),
     )
   }
 
   function undoLastRound(beyId: string) {
     setEventBeys((prev) =>
-      prev.map((eb) => eb.beyId === beyId ? { ...eb, rounds: eb.rounds.slice(0, -1) } : eb),
+      prev.map((eb) => {
+        if (eb.beyId !== beyId || eb.rounds.length === 0) return eb
+        const last = eb.rounds[eb.rounds.length - 1]
+        return {
+          ...eb,
+          rounds: eb.rounds.slice(0, -1),
+          redoStack: [last, ...eb.redoStack],
+        }
+      }),
+    )
+  }
+
+  function redoLastRound(beyId: string) {
+    setEventBeys((prev) =>
+      prev.map((eb) => {
+        if (eb.beyId !== beyId || eb.redoStack.length === 0) return eb
+        const [next, ...rest] = eb.redoStack
+        return {
+          ...eb,
+          rounds: [...eb.rounds, next],
+          redoStack: rest,
+        }
+      }),
     )
   }
 
@@ -347,7 +495,6 @@ export function AddEventPage() {
   async function handleDone(e: React.FormEvent) {
     e.preventDefault()
     if (eventBeys.length === 0) return
-
     setSaving(true)
     setSaveError('')
     try {
@@ -431,9 +578,7 @@ export function AddEventPage() {
       />
 
       {beysState.status === 'loading' && <p className="page-intro">Loading beys…</p>}
-      {beysState.status === 'error' && (
-        <p className="form-error-msg">{beysState.error}</p>
-      )}
+      {beysState.status === 'error' && <p className="form-error-msg">{beysState.error}</p>}
 
       <BeyCarousel
         entries={eventBeys}
@@ -446,6 +591,7 @@ export function AddEventPage() {
         onAddBey={() => setShowPicker(true)}
       />
 
+      {/* Bey list — hidden when score panel is open */}
       {eventBeys.length > 0 && !activeBeyId && (
         <div className="event-bey-list">
           {eventBeys.map(({ beyId, rounds }) => {
@@ -471,8 +617,8 @@ export function AddEventPage() {
                     <code className="ebe-codes">
                       {[...codeStr].map((ch, i) => {
                         if (ch === '.') return <span key={i} className="ebe-dot">.</span>
-                        const isWin = /[0-4]|9/.test(ch)
-                        return <span key={i} className={isWin ? 'stat-positive' : 'stat-negative'}>{ch}</span>
+                        const win = isWinCode(ch)
+                        return <span key={i} className={win ? 'stat-positive' : 'stat-negative'}>{tapeDisplay(ch)}</span>
                       })}
                     </code>
                   ) : (
@@ -492,14 +638,17 @@ export function AddEventPage() {
         </div>
       )}
 
+      {/* Score panel */}
       {activeBeyEntry && (
         <div ref={panelRef} className="score-panel-wrapper">
           <ScorePanel
             beyId={activeBeyEntry.beyId}
             rounds={activeBeyEntry.rounds}
+            redoStack={activeBeyEntry.redoStack}
             roster={roster}
             onAddRound={(round) => addRound(activeBeyEntry.beyId, round)}
             onUndo={() => undoLastRound(activeBeyEntry.beyId)}
+            onRedo={() => redoLastRound(activeBeyEntry.beyId)}
           />
         </div>
       )}
@@ -515,11 +664,7 @@ export function AddEventPage() {
 
       <form onSubmit={handleDone}>
         <div className="done-bar">
-          <button
-            className="btn-done"
-            disabled={eventBeys.length === 0 || saving}
-            type="submit"
-          >
+          <button className="btn-done" disabled={eventBeys.length === 0 || saving} type="submit">
             {saving ? 'Saving…' : 'Done'}
           </button>
         </div>
@@ -531,6 +676,7 @@ export function AddEventPage() {
           alreadySelected={eventBeys.map((eb) => eb.beyId)}
           onPick={addBeyToEvent}
           onClose={() => setShowPicker(false)}
+          onBeyCreated={(bey) => setLocalRoster((prev) => [...prev, bey])}
         />
       )}
     </section>

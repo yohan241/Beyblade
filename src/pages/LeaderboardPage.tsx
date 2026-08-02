@@ -10,11 +10,14 @@ type SortOption = 'statPoints' | 'winRate' | 'scoreOverOpponentRate'
 export function LeaderboardPage() {
   const beysState = useBeys()
   const entriesState = useAllEntries()
-  const [minimumMatchesInput, setMinimumMatchesInput] = useState('')
+  const [minimumMatchesInput, setMinimumMatchesInput] = useState('40')
+  const [maximumMatchesInput, setMaximumMatchesInput] = useState('')
   const [sortBy, setSortBy] = useState<SortOption>('statPoints')
 
   const minimumMatches =
     minimumMatchesInput === '' ? 0 : Math.max(0, Number(minimumMatchesInput))
+  const maximumMatches =
+    maximumMatchesInput === '' ? Infinity : Math.max(0, Number(maximumMatchesInput))
 
   const loading = beysState.status === 'loading' || entriesState.status === 'loading'
   const error = beysState.error ?? entriesState.error
@@ -29,7 +32,7 @@ export function LeaderboardPage() {
               .join('')
             return calculateStatsFromRoundCodes(bey.id, getBeyDisplayName(bey), allRoundCodes)
           })
-          .filter((s) => s.matches >= minimumMatches)
+          .filter((s) => s.matches >= minimumMatches && s.matches <= maximumMatches)
           .sort((a, b) => {
             const av = a[sortBy] ?? -Infinity
             const bv = b[sortBy] ?? -Infinity
@@ -43,7 +46,7 @@ export function LeaderboardPage() {
 
       <form className="leaderboard-controls" onSubmit={(e) => e.preventDefault()}>
         <label>
-          Minimum matches
+          Min matches
           <input
             min="0"
             onChange={(e) => {
@@ -53,6 +56,19 @@ export function LeaderboardPage() {
             placeholder="0"
             type="number"
             value={minimumMatchesInput}
+          />
+        </label>
+        <label>
+          Max matches
+          <input
+            min="0"
+            onChange={(e) => {
+              const raw = e.target.value
+              if (raw === '' || /^\d+$/.test(raw)) setMaximumMatchesInput(raw)
+            }}
+            placeholder="No limit"
+            type="number"
+            value={maximumMatchesInput}
           />
         </label>
         <label>
