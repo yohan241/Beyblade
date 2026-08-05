@@ -2091,3 +2091,55 @@ code {
     grid-template-columns: 1fr 1fr;
   }
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   BEY LIST — drag-to-reorder (pointer-based with ghost)
+═══════════════════════════════════════════════════════════════ */
+
+/* Row being dragged: fades out in-place so the gap is visible */
+.ebe-is-dragging {
+  opacity: 0.25;
+  border-color: #3a2545 !important;
+  background: #16101f !important;
+  pointer-events: none;
+}
+
+/* Row that the ghost is hovering over: golden top border acts as insertion indicator */
+.ebe-drop-target {
+  border-color: #f3c449 !important;
+  background: #221530 !important;
+  box-shadow: 0 -3px 0 0 #f3c449 !important;
+}
+
+/* Drag handle — left edge gripper */
+.ebe-drag-handle {
+  align-items: center;
+  color: #3a2545;
+  cursor: grab;
+  display: flex;
+  flex-shrink: 0;
+  font-size: 1.1rem;
+  letter-spacing: -0.05em;
+  padding: 0 0.2rem 0 0;
+  touch-action: none;
+  transition: color 0.12s;
+  user-select: none;
+}
+.event-bey-entry:hover .ebe-drag-handle {
+  color: #70407e;
+}
+.ebe-drag-handle:active {
+  color: #f3c449;
+  cursor: grabbing;
+}
+
+/* Ghost — injected into body, fully styled inline in JS */
+/* The .ebe-ghost class provides the base; inline styles position it */
+.ebe-ghost {
+  cursor: grabbing !important;
+}
+
+/* ebe-main is the click target for the score panel */
+.ebe-main {
+  cursor: pointer;
+}

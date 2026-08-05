@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { PageHeader } from '../components/PageHeader'
 import { BeyName, getBeyDisplayName } from '../components/BeyName'
@@ -407,6 +407,209 @@ function BeyPickerModal({
   )
 }
 
+// ─── Sortable bey list with pointer-based drag + ghost ───────────────────────
+
+function SortableBeyList({
+  eventBeys,
+  roster,
+  onReorder,
+  onSelectBey,
+  onRemoveBey,
+}: {
+  eventBeys: EventBeyState[]
+  roster: Bey[]
+  onReorder: React.Dispatch<React.SetStateAction<EventBeyState[]>>
+  onSelectBey: (id: string) => void
+  onRemoveBey: (id: string) => void
+}) {
+  const listRef = useRef<HTMLDivElement>(null)
+  const ghostRef = useRef<HTMLDivElement | null>(null)
+
+  // Drag state stored in refs so pointer handlers don't need re-renders
+  const dragging = useRef<{
+    fromIndex: number
+    offsetX: number
+    offsetY: number
+    itemHeight: number
+  } | null>(null)
+  const overIndex = useRef<number | null>(null)
+
+  // React state only for the visual drop-target indicator
+  const [dropTarget, setDropTarget] = useState<number | null>(null)
+  const [dragIndex, setDragIndex] = useState<number | null>(null)
+
+  // Build and inject the ghost element into the body
+  function createGhost(sourceEl: HTMLElement, clientX: number, clientY: number) {
+    const rect = sourceEl.getBoundingClientRect()
+    const ghost = sourceEl.cloneNode(true) as HTMLDivElement
+    ghost.className = 'ebe-ghost'
+    ghost.style.cssText = `
+      position: fixed;
+      left: ${rect.left}px;
+      top: ${rect.top}px;
+      width: ${rect.width}px;
+      height: ${rect.height}px;
+      pointer-events: none;
+      z-index: 9999;
+      opacity: 0.85;
+      box-shadow: 0 8px 32px rgb(0 0 0 / 55%), 0 0 16px rgb(243 196 73 / 30%);
+      border: 2px solid #f3c449;
+      border-radius: 0.85rem;
+      transform: rotate(1.5deg) scale(1.03);
+      transition: box-shadow 0.1s;
+      background: #221530;
+    `
+    document.body.appendChild(ghost)
+    ghostRef.current = ghost
+    dragging.current!.offsetX = clientX - rect.left
+    dragging.current!.offsetY = clientY - rect.top
+    dragging.current!.itemHeight = rect.height
+  }
+
+  function moveGhost(clientX: number, clientY: number) {
+    const g = ghostRef.current
+    const d = dragging.current
+    if (!g || !d) return
+    g.style.left = `${clientX - d.offsetX}px`
+    g.style.top = `${clientY - d.offsetY}px`
+  }
+
+  function removeGhost() {
+    ghostRef.current?.remove()
+    ghostRef.current = null
+  }
+
+  // Compute which index the ghost is hovering over from pointer Y
+  function indexAtY(clientY: number): number {
+    const list = listRef.current
+    if (!list || !dragging.current) return dragging.current!.fromIndex
+    const items = Array.from(list.querySelectorAll<HTMLElement>('.event-bey-entry'))
+    for (let i = 0; i < items.length; i++) {
+      const rect = items[i].getBoundingClientRect()
+      if (clientY < rect.top + rect.height / 2) return i
+    }
+    return items.length - 1
+  }
+
+  const onPointerMove = useCallback((e: PointerEvent) => {
+    if (!dragging.current) return
+    moveGhost(e.clientX, e.clientY)
+    const idx = indexAtY(e.clientY)
+    if (idx !== overIndex.current) {
+      overIndex.current = idx
+      setDropTarget(idx)
+    }
+  }, [])
+
+  const onPointerUp = useCallback(() => {
+    if (!dragging.current) return
+    const from = dragging.current.fromIndex
+    const to = overIndex.current ?? from
+    removeGhost()
+    document.removeEventListener('pointermove', onPointerMove)
+    document.removeEventListener('pointerup', onPointerUp)
+    dragging.current = null
+    overIndex.current = null
+    setDragIndex(null)
+    setDropTarget(null)
+    if (from !== to) {
+      onReorder((prev) => {
+        const next = [...prev]
+        const [moved] = next.splice(from, 1)
+        next.splice(to, 0, moved)
+        return next
+      })
+    }
+  }, [onPointerMove, onReorder])
+
+  function handleHandlePointerDown(e: React.PointerEvent, index: number) {
+    e.preventDefault()
+    e.stopPropagation()
+    const article = (e.currentTarget as HTMLElement).closest<HTMLElement>('.event-bey-entry')
+    if (!article) return
+    dragging.current = { fromIndex: index, offsetX: 0, offsetY: 0, itemHeight: 0 }
+    overIndex.current = index
+    createGhost(article, e.clientX, e.clientY)
+    setDragIndex(index)
+    setDropTarget(index)
+    document.addEventListener('pointermove', onPointerMove)
+    document.addEventListener('pointerup', onPointerUp)
+  }
+
+  // Clean up if component unmounts mid-drag
+  useEffect(() => {
+    return () => {
+      removeGhost()
+      document.removeEventListener('pointermove', onPointerMove)
+      document.removeEventListener('pointerup', onPointerUp)
+    }
+  }, [onPointerMove, onPointerUp])
+
+  return (
+    <div className="event-bey-list" ref={listRef}>
+      {eventBeys.map(({ beyId, rounds }, index) => {
+        const bey = roster.find((b) => b.id === beyId)
+        const codeStr = roundsToCodeString(rounds)
+        const isDragging = dragIndex === index
+        const isDropTarget = dropTarget === index && dragIndex !== null && dragIndex !== index
+
+        return (
+          <article
+            key={beyId}
+            className={[
+              'event-bey-entry',
+              isDragging ? 'ebe-is-dragging' : '',
+              isDropTarget ? 'ebe-drop-target' : '',
+            ].filter(Boolean).join(' ')}
+          >
+            {/* Drag handle */}
+            <span
+              className="ebe-drag-handle"
+              aria-hidden="true"
+              title="Drag to reorder"
+              onPointerDown={(e) => handleHandlePointerDown(e, index)}
+            >⠿</span>
+
+            <div className="ebe-left">
+              <BeyAvatar bey={bey} size="md" />
+            </div>
+            <div
+              className="ebe-main"
+              onClick={() => !dragging.current && onSelectBey(beyId)}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => e.key === 'Enter' && onSelectBey(beyId)}
+            >
+              <strong className="ebe-name"><BeyName bey={bey} /></strong>
+              {codeStr.length > 0 ? (
+                <code className="ebe-codes">
+                  {[...codeStr].map((ch, i) => {
+                    if (ch === '.') return <span key={i} className="ebe-dot">.</span>
+                    return (
+                      <span key={i} className={isWinCode(ch) ? 'stat-positive' : 'stat-negative'}>
+                        {tapeDisplay(ch)}
+                      </span>
+                    )
+                  })}
+                </code>
+              ) : (
+                <span className="ebe-empty">No rounds yet — tap to score</span>
+              )}
+              <BeyStatRow beyId={beyId} rounds={rounds} roster={roster} />
+            </div>
+            <button
+              className="ebe-remove"
+              onClick={(e) => { e.stopPropagation(); onRemoveBey(beyId) }}
+              type="button"
+              aria-label={`Remove ${getBeyDisplayName(bey)} from event`}
+            >✕</button>
+          </article>
+        )
+      })}
+    </div>
+  )
+}
+
 // ─── Main page ────────────────────────────────────────────────────────────────
 
 type Step = 'details' | 'matches'
@@ -591,51 +794,15 @@ export function AddEventPage() {
         onAddBey={() => setShowPicker(true)}
       />
 
-      {/* Bey list — hidden when score panel is open */}
+      {/* Bey list — hidden when score panel is open, supports drag-to-reorder */}
       {eventBeys.length > 0 && !activeBeyId && (
-        <div className="event-bey-list">
-          {eventBeys.map(({ beyId, rounds }) => {
-            const bey = roster.find((b) => b.id === beyId)
-            const codeStr = roundsToCodeString(rounds)
-            return (
-              <article
-                key={beyId}
-                className="event-bey-entry"
-                onClick={() => setActiveBeyId((prev) => (prev === beyId ? null : beyId))}
-                role="button"
-                tabIndex={0}
-                onKeyDown={(e) =>
-                  e.key === 'Enter' && setActiveBeyId((prev) => (prev === beyId ? null : beyId))
-                }
-              >
-                <div className="ebe-left">
-                  <BeyAvatar bey={bey} size="md" />
-                </div>
-                <div className="ebe-main">
-                  <strong className="ebe-name"><BeyName bey={bey} /></strong>
-                  {codeStr.length > 0 ? (
-                    <code className="ebe-codes">
-                      {[...codeStr].map((ch, i) => {
-                        if (ch === '.') return <span key={i} className="ebe-dot">.</span>
-                        const win = isWinCode(ch)
-                        return <span key={i} className={win ? 'stat-positive' : 'stat-negative'}>{tapeDisplay(ch)}</span>
-                      })}
-                    </code>
-                  ) : (
-                    <span className="ebe-empty">No rounds yet — tap to score</span>
-                  )}
-                  <BeyStatRow beyId={beyId} rounds={rounds} roster={roster} />
-                </div>
-                <button
-                  className="ebe-remove"
-                  onClick={(e) => { e.stopPropagation(); removeBeyFromEvent(beyId) }}
-                  type="button"
-                  aria-label={`Remove ${getBeyDisplayName(bey)} from event`}
-                >✕</button>
-              </article>
-            )
-          })}
-        </div>
+        <SortableBeyList
+          eventBeys={eventBeys}
+          roster={roster}
+          onReorder={setEventBeys}
+          onSelectBey={(id) => setActiveBeyId((prev) => (prev === id ? null : id))}
+          onRemoveBey={removeBeyFromEvent}
+        />
       )}
 
       {/* Score panel */}
