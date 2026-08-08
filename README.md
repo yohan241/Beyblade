@@ -1,276 +1,97 @@
 # BEYTRACK
 
-A personal Beyblade match tracker built for competitive players. Log events, track bey performance across matches, and rank your builds using a custom scoring system.
-
-Live at: **[your-vercel-url.vercel.app]**
+A personal stat tracker for competitive Beyblade players. Built for a single player who wanted a proper way to record match results, track which beys are performing well, and actually answer the question — *which build is my best right now?*
 
 ---
 
-## What it does
+## The problem it solves
 
-BEYTRACK lets you record every event you attend, log the round-by-round results for each bey in your deck, and automatically calculates win rate, SOOR (Score Over Opponent Rate), and a combined **Stat Points** number used to rank your builds. The leaderboard tells you objectively which beys are performing best across your entire competitive history.
+Competitive Beyblade players often track their results in notes apps, spreadsheets, or just memory. BEYTRACK replaces that with a purpose-built tool that understands the game's scoring system, automatically calculates your win rate and point efficiency, and ranks your builds so the best one is always obvious.
 
 ---
 
-## Pages
+## How it works
 
-### Leaderboard
-
-Ranks all your beys by Stat Points (default), Win Rate, or SOOR. Filter by a minimum and maximum match count so only builds with enough data are shown. Click any row to expand a full breakdown of every finish type — how many Spin Finishes, Burst Finishes, self-finishes, and so on.
-
-The default minimum is **40 matches** so the leaderboard only surfaces beys with meaningful sample sizes.
-
-### Events
-
-Lists every event you've attended, newest first. Each card shows the top 3 beys from that event by Stat Points.
-
-**Filtering:** A collapsible "Filter by Bey" panel lets you select one or more beys as tags. The list narrows to only events that contain all of the selected beys. A search bar also filters by event name.
-
-### Event Detail
-
-Shows every bey used in an event, sorted by Stat Points. Tap **Edit event** to reopen the full scoring wizard with all existing data pre-loaded.
+Everything revolves around three things: **Beys**, **Events**, and **Stats**.
 
 ### Beys
 
-Lists all your beys. Click any row to expand it and see:
-- Overall WR, SOOR, Stat Points
-- Complete breakdown: how many times each finish type occurred, including self-finish counts
+Your roster of builds. Each bey has a build string (e.g. `WR 1-60H`), an optional nickname, and an optional photo. When you look at a bey you can see its all-time record across every event you've ever attended — wins, losses, points scored, points given away, and a full breakdown of exactly how those results happened.
 
-Each expanded row also has **Edit** and **Delete** buttons. Deleting a bey removes it from all event entries.
+### Events
 
-### Add Event / Edit Event
+Every tournament or session you attend gets logged as an event. You record which beys you used, and for every single match you tap a button to record what happened — whether you won with a Burst Finish, lost to a Pocket Finish, or pulled off a no-contact launch. The app turns all of that into a compact record string behind the scenes.
 
-A two-step wizard:
+### Stats
 
-1. **Details** — Event name and date.
-2. **Scoring** — Add beys to the event, score each match, reorder the list by dragging.
+The app calculates three numbers for every bey, both per-event and across all time:
+
+**Win Rate (WR)** — straightforward. How often did this bey win its matches.
+
+**Score Over Opponent Rate (SOOR)** — a measure of point efficiency. If you scored 12 points and your opponent scored 9 points from your bey, your SOOR is 133%. Above 100% means you gave as good as you got. Below 100% means the other bey was pulling ahead on points even in the rounds it lost.
+
+**Stat Points** — the combined ranking number. Win Rate percentage plus SOOR percentage, added together. So 79% WR + 332% SOOR = **411 Stat Points**. This is the single number used to rank everything. The bey at the top of the leaderboard with the most stat points across enough matches is, objectively, your best performing build.
 
 ---
 
 ## The scoring system
 
-Every match result is recorded as a **round code** — a single character. A full event string looks like `2.431505` where each character is one match result.
+Each match result is one of these:
 
-### Win codes (your points)
+| What happened | Points |
+|---|---|
+| You got a Spin Finish | +1 |
+| You got a Pocket Finish | +2 |
+| You got an Xtreme Finish | +3 |
+| You got a Burst Finish | +4 |
+| You won against a Stamina build | +2 |
+| You won by no-contact launch | +2 |
+| Opponent got a Spin Finish on you | –1 |
+| Opponent got a Pocket Finish on you | –2 |
+| Opponent got an Xtreme Finish on you | –3 |
+| Opponent got a Burst Finish on you | –4 |
+| Opponent won against your Stamina build | –2 |
+| Opponent won by no-contact launch | –2 |
 
-| Code | Finish type | Points |
-|------|-------------|--------|
-| `1` | Spin Finish | +1 |
-| `2` | Pocket Finish | +2 |
-| `3` | Xtreme Finish | +3 |
-| `4` | Burst Finish | +4 |
-| `0` | Spin vs Stamina | +2 |
-| `9` | No Contact (launch tech) | +2 |
-
-### Loss codes (opponent's points scored on you)
-
-| Code | Finish type | Points against |
-|------|-------------|----------------|
-| `5` | Opp Spin Finish | –1 |
-| `6` | Opp Pocket Finish | –2 |
-| `7` | Opp Xtreme Finish | –3 |
-| `8` | Opp Burst Finish | –4 |
-| `a` | Opp Spin vs Stamina | –2 |
-| `b` | Opp No Contact | –2 |
-
-> `a` and `b` are internal codes that display as red `0` and red `9` in the UI to keep the visual language consistent.
-
-### Self-finish marker
-
-A period `.` after a code (e.g. `2.`) marks a **self-finish** — when a Pocket, Xtreme, or Burst finish happened due to your own blade. This applies to both wins (codes 2/3/4) and losses (codes 6/7/8). Self-finishes are tracked separately in the breakdown accordion.
+You can also mark any Pocket, Xtreme, or Burst finish — on either side — as a **Self Finish**, meaning the result happened due to the losing bey's own movement rather than a clean hit. These are tracked separately so you can see how often a bey is self-finishing.
 
 ---
 
-## Stat formulas
+## What you can do
 
-### Win Rate (WR)
+### Log an event
+Tap the + button on the Events page. Give the event a name and date, then add the beys you used. For each bey, open its score panel and tap the result of every match — win arrows on the right, loss arrows on the left. The panel shows a running tally of the bey's record as you go. When you're done, tap Done and everything is saved.
 
-```
-WR = (wins / total matches) × 100
-```
+You can also drag and reorder the bey list, undo and redo individual match results, and create a brand new bey on the spot if you used something that wasn't in your roster yet.
 
-A round is a win if its point value is positive (codes 1, 2, 3, 4, 0, 9).
+### Edit an event
+Already logged an event but made a mistake? Open the event, tap Edit, and the full scoring wizard reopens with all your existing results pre-loaded. Change anything — the beys used, every single match result — and save.
 
-### Score Over Opponent Rate (SOOR)
+### Your bey roster
+The Beys page shows every build you've ever used. Tap any bey to expand it and see the complete picture: overall record, point totals, and a breakdown showing exactly how many times each finish type occurred and how many were self-finishes.
 
-```
-SOOR = (points scored by you / points scored against you) × 100
-```
+### The leaderboard
+Ranks all your beys by Stat Points. By default only beys with at least 40 matches show up, so the ranking is based on real data rather than a lucky run of five games. You can adjust that threshold up or down. Click any ranked bey to expand its full breakdown without leaving the page.
 
-SOOR above 100% means you scored more than your opponent did from you. Below 100% means you gave away more than you took.
-
-### Stat Points
-
-```
-Stat Points = round(WR) + round(SOOR)
-```
-
-This is the primary ranking number. A bey with 79% WR and 332% SOOR scores **79 + 332 = 411 Stat Points**.
+### Filter events by bey
+On the Events page there's a collapsible filter panel. Select one or more beys and the list narrows to only events where you used those builds. Useful for tracking how a specific bey has been performing across tournaments over time.
 
 ---
 
-## Adding an event
+## A note on how results are stored
 
-1. Tap the **+** FAB on the Events page.
-2. Enter the event name and date, tap **Next**.
-3. Tap **Add Bey** in the carousel to pick beys from your roster (or create a new one inline).
-4. Tap a bey chip in the carousel to open its **Score Panel**.
-5. For each match, press the **→** arrow on the right for a win or the **←** arrow on the left for a loss. The centre label shows the finish type and the arrows show the point value.
-6. Toggle **SF?** before pressing an arrow to mark a self-finish (Pocket / Xtreme / Burst only).
-7. Use **↩ Undo** / **Redo ↪** to correct mistakes.
-8. Tap a different chip to switch beys, or close the panel by tapping the active chip again.
-9. Drag the **⠿** handle on any row to reorder the bey list.
-10. Tap **Done** to save.
+Under the hood, a full event's worth of match results for one bey is stored as a compact string of characters — something like `2.431505`. Each character is one match, and the app decodes that back into all the stats you see. This keeps the data light and fast while still capturing everything needed to calculate any stat exactly.
 
 ---
 
-## Score panel reference
+## Built with
 
-```
-[← –2]  [ Pocket Finish ]  [+2 →]
-[← –3]  [ Xtreme Finish ]  [+3 →]
-```
+The app runs in a web browser and is hosted online so it's accessible from any device. It uses a cloud database to store all event and bey data, meaning nothing is lost if you switch phones or clear your browser. Photos uploaded for beys are also stored in the cloud.
 
-- Left arrow = opponent scored that finish on you (subtracts from your SOOR)
-- Right arrow = you scored that finish (adds to your SOOR)
-- Centre button also counts as a win tap
+The whole thing was built custom — there's no off-the-shelf Beyblade tracker that understands this specific scoring system, so everything from the stat formulas to the match input screen was designed from scratch around how the game actually works.
 
 ---
 
-## Tech stack
+## Privacy
 
-| Layer | Technology |
-|-------|-----------|
-| Frontend | React 19 + TypeScript |
-| Build tool | Vite |
-| UI components | Material UI (MUI) |
-| Routing | React Router v7 |
-| Database | Supabase (PostgreSQL) |
-| Hosting | Vercel |
-
----
-
-## Database schema
-
-Three tables in Supabase:
-
-```sql
-beys (
-  id          uuid primary key,
-  name        text,           -- optional nickname
-  build       text not null,  -- e.g. "WR 1-60H"
-  image_url   text,
-  created_at  timestamptz
-)
-
-events (
-  id          uuid primary key,
-  name        text not null,
-  event_date  date not null,
-  created_at  timestamptz
-)
-
-event_bey_entries (
-  id          uuid primary key,
-  event_id    uuid references events(id) on delete cascade,
-  bey_id      uuid references beys(id) on delete cascade,
-  round_codes text not null default '',
-  created_at  timestamptz
-)
-```
-
-The `round_codes` string is the serialised match history for one bey in one event. All stat calculation happens client-side by parsing this string.
-
----
-
-## Local setup
-
-**Prerequisites:** Node.js 18+, a Supabase project with the schema above.
-
-```bash
-git clone <repo-url>
-cd Beyblade
-npm install
-```
-
-Create a `.env` file in the project root:
-
-```env
-VITE_SUPABASE_URL=https://your-project-id.supabase.co
-VITE_SUPABASE_ANON_KEY=your-anon-public-key
-```
-
-Start the dev server:
-
-```bash
-npm run dev
-```
-
-Build for production:
-
-```bash
-npm run build
-```
-
----
-
-## Deployment (Vercel)
-
-1. Push the repo to GitHub.
-2. Import the project at [vercel.com](https://vercel.com).
-3. Add the two environment variables (`VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`) in the Vercel project settings under **Environment Variables**.
-4. Deploy. Every push to `main` auto-deploys.
-
-The `vercel.json` at the project root configures SPA routing so direct URLs like `/events/some-id` don't return 404.
-
----
-
-## Supabase Storage (bey photos)
-
-Bey images are stored in a public Supabase Storage bucket called `bey-images`. To enable uploads:
-
-1. Go to Supabase → Storage → create a bucket named `bey-images`, set it to **Public**.
-2. Run the following in the SQL editor to allow uploads from the anon key:
-
-```sql
-create policy "Allow public uploads"  on storage.objects for insert to anon with check (bucket_id = 'bey-images');
-create policy "Allow public updates"  on storage.objects for update to anon using (bucket_id = 'bey-images');
-create policy "Allow public reads"    on storage.objects for select to anon using (bucket_id = 'bey-images');
-create policy "Allow public deletes"  on storage.objects for delete to anon using (bucket_id = 'bey-images');
-```
-
-Images are cropped to a 512×512 square in-browser before upload.
-
----
-
-## Project structure
-
-```
-src/
-├── components/
-│   ├── BeyAvatar.tsx      # Square image/placeholder used everywhere
-│   ├── BeyBreakdown.tsx   # Expandable finish-type breakdown (Beys + Leaderboard)
-│   ├── BeyName.tsx        # Displays nickname + build string
-│   ├── EventWizard.tsx    # Shared wizard components (ScorePanel, BeyCarousel,
-│   │                      #   SortableBeyList, BeyPickerModal)
-│   └── PageHeader.tsx     # Page title + optional action slot
-├── hooks/
-│   └── useData.ts         # React hooks for all Supabase queries
-├── layouts/
-│   └── AppLayout.tsx      # Top bar + sidebar nav (desktop) / bottom nav (mobile)
-├── lib/
-│   ├── db.ts              # All database read/write functions
-│   ├── stats.ts           # Stat calculation (WR, SOOR, Stat Points)
-│   └── supabase.ts        # Supabase client + row types
-├── pages/
-│   ├── AddEventPage.tsx   # New event wizard
-│   ├── AddBeyPage.tsx     # Add bey with crop UI
-│   ├── BeysPage.tsx       # Bey roster with accordion breakdown
-│   ├── EditBeyPage.tsx    # Edit existing bey
-│   ├── EditEventPage.tsx  # Edit existing event (full wizard)
-│   ├── EventDetailPage.tsx
-│   ├── EventsPage.tsx     # Event list with search + bey filter tags
-│   └── LeaderboardPage.tsx
-└── types/
-    └── tracker.ts         # Core TypeScript types
-```
+This is a private tool. The hosted URL is not public. All data belongs to the player it was built for.
