@@ -2143,3 +2143,154 @@ code {
 .ebe-main {
   cursor: pointer;
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   EVENTS PAGE — BEY FILTER TAGS
+═══════════════════════════════════════════════════════════════ */
+
+.bey-filter-panel {
+  background: #16101f;
+  border: 1px solid rgb(112 64 126 / 40%);
+  border-radius: 1rem;
+  display: grid;
+  gap: 0.6rem;
+  margin-bottom: 1rem;
+  /* collapsed: no gap, tighter padding */
+}
+.bey-filter-panel:not(.bey-filter-panel-open) {
+  gap: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+.bey-filter-header {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  min-height: 2.6rem;
+}
+
+/* The toggle button fills the left side of the header */
+.bey-filter-toggle {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  color: inherit;
+  cursor: pointer;
+  display: flex;
+  flex: 1;
+  font: inherit;
+  gap: 0.5rem;
+  min-height: 2.6rem;
+  padding: 0.85rem 1rem;
+  text-align: left;
+}
+.bey-filter-toggle:hover .bey-filter-title { color: #f3c449; }
+
+.bey-filter-title {
+  color: #d7a0e8;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  transition: color 0.12s;
+}
+
+/* Active-filter count badge */
+.bey-filter-badge {
+  background: #f3c449;
+  border-radius: 999px;
+  color: #120d17;
+  font-size: 0.65rem;
+  font-weight: 900;
+  line-height: 1;
+  min-width: 1.2rem;
+  padding: 0.15rem 0.35rem;
+  text-align: center;
+}
+
+.bey-filter-chevron {
+  color: #5a4a66;
+  font-size: 0.6rem;
+  margin-left: auto;
+  transition: color 0.12s;
+}
+.bey-filter-toggle:hover .bey-filter-chevron { color: #d7a0e8; }
+
+.bey-filter-clear {
+  background: transparent;
+  border: 1px solid #7a1d2e;
+  border-radius: 999px;
+  color: #ff7184;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 700;
+  margin-left: 0.5rem;
+  padding: 0.2rem 0.65rem;
+  transition: background 0.12s;
+}
+.bey-filter-clear:hover { background: #3d0e1a; }
+
+.bey-filter-search {
+  background: #120d17;
+  border: 1px solid #3a2545;
+  border-radius: 999px;
+  color: #f7f3eb;
+  font: inherit;
+  font-size: 0.83rem;
+  min-height: 2.1rem;
+  padding: 0.35rem 0.9rem;
+  transition: border-color 0.15s;
+  width: 100%;
+}
+.bey-filter-search:focus {
+  border-color: #f3c449;
+  outline: 2px solid rgb(243 196 73 / 20%);
+  outline-offset: 1px;
+}
+.bey-filter-search::placeholder { color: #4a3a55; }
+.bey-filter-search::-webkit-search-cancel-button { display: none; }
+
+.bey-filter-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  justify-content: space-around;
+}
+
+.bey-filter-tag {
+  background: #1e1428;
+  border: 1px solid #3a2545;
+  border-radius: 999px;
+  color: #9c91a2;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.3rem 0.8rem;
+  transition: background 0.12s, border-color 0.12s, color 0.12s;
+}
+.bey-filter-tag:hover {
+  border-color: #70407e;
+  color: #d7a0e8;
+}
+
+/* Active / selected tag */
+.bey-filter-tag-active {
+  background: rgb(243 196 73 / 12%);
+  border-color: #f3c449;
+  color: #f3c449;
+  font-weight: 800;
+}
+.bey-filter-tag-active:hover {
+  background: rgb(243 196 73 / 20%);
+  border-color: #f3c449;
+  color: #f3c449;
+}
+
+.bey-filter-empty {
+  color: #5a4a66;
+  font-size: 0.8rem;
+  font-style: italic;
+}

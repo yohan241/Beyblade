@@ -208,3 +208,30 @@ export async function insertEntries(entries: {
 
   if (error) throw new Error(error.message)
 }
+
+/** Delete all entries for an event then insert the new set — used by edit. */
+export async function replaceEntriesForEvent(
+  eventId: string,
+  entries: { beyId: string; roundCodes: string }[],
+): Promise<void> {
+  const { error: delError } = await supabase
+    .from('event_bey_entries')
+    .delete()
+    .eq('event_id', eventId)
+
+  if (delError) throw new Error(delError.message)
+
+  if (entries.length === 0) return
+
+  const { error: insError } = await supabase
+    .from('event_bey_entries')
+    .insert(
+      entries.map((e) => ({
+        event_id: eventId,
+        bey_id: e.beyId,
+        round_codes: e.roundCodes,
+      })),
+    )
+
+  if (insError) throw new Error(insError.message)
+}
